@@ -10,7 +10,7 @@ Status: early construction. The pipeline, runtime and world tiles are under acti
 - Terrain comes from the AWS Terrain Tiles dataset.
 - Landmarks are modelled by hand from photographs.
 - The runtime is a Three.js application that streams tiles around the player.
-- Every tile is curated in its own pull request. Continuous integration builds, validates and screenshots the changed tile before it can merge.
+- Every tile is curated in its own pull request. Continuous integration (`ci / test`, `ci / tiles`) builds, validates and screenshots the changed tile before it can merge.
 
 ## Data and credits
 
