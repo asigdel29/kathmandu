@@ -1,0 +1,20 @@
+{
+  "zone": "suburb",
+  "defaultLevels": 4,
+  "buildings": {
+    "a1004124828": { "remove": true },
+    "a386590266": { "style": "institutional", "levels": 5, "roof": "flat" },
+    "a456969986": { "style": "institutional", "levels": 5, "roof": "flat" },
+    "a401127046": { "style": "institutional", "levels": 3, "roof": "flat" },
+    "a1812398198": { "style": "institutional", "levels": 2, "roof": "flat" },
+    "a993740068": { "style": "rcc_plaster_white", "levels": 5, "roof": "flat" },
+    "a422459006": { "style": "rcc_plaster_pastel", "levels": 4, "roof": "flat" },
+    "a479908584": { "style": "rcc_plaster_pastel", "levels": 3, "roof": "flat" },
+    "a425286468": { "style": "commercial_glass", "levels": 4, "roof": "flat" },
+    "a1003140378": { "style": "commercial_glass", "levels": 5, "roof": "flat" },
+    "a683879462": { "style": "commercial_glass", "levels": 4, "roof": "flat" },
+    "a748358024": { "style": "rcc_plaster_white", "levels": 3, "roof": "flat" }
+  },
+  "roads": {},
+  "notes": "Maitidevi: dense four-storey RCC blocks, colleges and schools in institutional style, banks and hotels along Pashupati Sadak and Dillibazar. The fuel station footprint sits on its own forecourt road and is removed."
+}
