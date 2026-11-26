@@ -1,0 +1,17 @@
+node_modules/
+dist/
+data/
+.worktrees/
+*.log
+.DS_Store
+.env
+apps/game/dist/
+apps/game/public/world
+
+# local-only operator files, never committed
+AGENTS.md
+CLAUDE.md
+.hermes/
+.claude/
+.cursor/
+.cursorrules
