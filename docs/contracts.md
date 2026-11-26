@@ -109,3 +109,7 @@ Target: dense, lived-in, sun-drenched realism with a cinematic third-person came
 - Ingest (`bun run pipeline ingest`, osmium 1.19.1): `features: 1149194` in `data/raw/valley.geojsonl`.
 - Partition (`bun run pipeline partition`): `tiles with features: 1530 / 1530`, `content tiles: 1419` (111 terrain tiles).
 - World base URL: recorded when the public bucket exists.
+
+## 11. Verified orientations
+
+- **Rapier heightfield** (`apps/game/src/physics/Physics.ts`): Rapier's heightfield matrix is column-major with rows along local Z and columns along local X, so `heights[c * 65 + r] = height[r * 65 + c]` (r = `height.f32` row, north→south / local z increasing; c = column, west→east), scale `(800, 1, 800)`, collider translated to the tile centre. Verified 2026-11-26 in the browser on `x12_y18` (Swayambhu hill): downward ray casts match `height.f32` to 0.000 m at six asymmetric points (the swapped layout would be off by up to 33.1 m), and the character walked 173 m uphill toward the summit (north-west), climbing 75.7 m with its centre 0.87–1.05 m above the sampled ground (capsule half-height 0.9 m): it neither floats nor sinks.
