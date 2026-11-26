@@ -62,6 +62,7 @@ kathmandu/
 - `nav.json`: `{ "nodes": [{ "id": "n_<cmX>_<cmZ>", "x", "y", "z", "border": bool }], "edges": [{ "from", "to", "lanes", "oneway", "speed", "cls", "width" }] }`. Node ids are **world** coordinates quantised to 1 cm, so the same physical point has the same id in both tiles. Runtime stitches tiles by id.
 - `meta.json`: validated by `TileMeta` schema.
 - Hero: `hero.json` validated by `Hero` schema; model is authored in meters, +Y up, origin at ground level at the landmark's anchor lat/lon, facing +Z = south before `rotationDeg` is applied (rotation is about Y, degrees clockwise seen from above).
+- Hero placement at runtime: `manifest.heroes[<slug>]` = `{ tile, url, sha256, lat, lon, rotationDeg, scale }` (copied from `hero.json`). Once `tile` is loaded, the runtime fetches `<world base>heroes/<slug>/<sha256>/model.glb` and places it at `lonLatToLocal(lon, lat)`, Y = terrain height there − `BASE_ELEVATION_M`, `rotation.y = −rotationDeg·π/180`, uniform `scale`. A missing model logs one warning and is skipped. `?hero=<slug>` starts the player 60 m south of the anchor.
 
 ## 6. Ownership and merge rules
 
