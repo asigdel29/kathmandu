@@ -7,7 +7,7 @@ import { MeshBuilder } from '../gltf/mesh.ts';
 import { writeGlb } from '../gltf/write.ts';
 import { PATHS } from '../paths.ts';
 import { defaultLevels, pickStyle, styleIndex, zoneAt, type Zone } from '../style/style.ts';
-import { buildingHeight, extrudeBuilding } from './buildings.ts';
+import { buildingHeight, extrudeBuilding, roofKind } from './buildings.ts';
 import { alongPolyline, pointInRing, roofProps, treesInRing, type XZ } from './props.ts';
 import { navNodeId, ribbon, roadSpec } from './roads.ts';
 import { LANDCOVER, terrainMesh, type GreenArea } from './terrain.ts';
@@ -167,8 +167,10 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
     const height = buildingHeight(f.properties, ov, overrides.defaultLevels ?? defaultLevels(zone));
     let minY = Infinity; for (const [x, z] of outer) minY = Math.min(minY, yAt(x, z));
     const by = minY - 0.3;
-    extrudeBuilding({ rings, baseY: by, height, style: styleIndex(style) }, walls, roofs);
-    generated.push(...roofProps(openRing(outer), by + height, style, hash01(f.id + 'roof')));
+    const roof = roofKind(zone, outer, ov?.roof);
+    extrudeBuilding({ rings, baseY: by, height, style: styleIndex(style), roof, roofStyle: styleIndex('tile_roof') }, walls, roofs);
+    // Water tanks and rebar stand on flat roofs only.
+    if (roof === 'flat') generated.push(...roofProps(openRing(outer), by + height, style, hash01(f.id + 'roof')));
     buildingCount++;
   }
 

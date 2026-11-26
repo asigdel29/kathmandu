@@ -56,6 +56,7 @@ kathmandu/
 - `terrain.glb`: 65×65 vertex grid (12.5 m spacing), indexed triangles, `COLOR_0` landcover tint. ≤ 8,192 triangles.
 - `height.f32`: 65×65 little-endian Float32, row-major, rows from **north to south** (local z increasing), columns west→east, meters above sea level. 16,900 bytes.
 - `buildings.glb`: one mesh, primitive 0 = walls, primitive 1 = roofs. Attributes `POSITION`, `NORMAL`, `TEXCOORD_0` (u = meters along facade, v = meters up), `_STYLE` (float32 scalar, style index from `world/style/building-styles.json`). Buildings' base Y is baked in (no runtime terrain sampling). Budget ≤ 600k triangles, ≤ 8 MB before compression.
+- `_STYLE` index 8 is `tile_roof` (`#6b3b2e`), used only on the roof slopes of gabled buildings: `overrides.buildings[id].roof === 'pitched'`, or a `*-core` zone with ≤ 6 footprint vertices and footprint/OBB fill > 0.8 (`roof: 'flat'` forces flat). Ridge along the OBB long axis, 0.35 × short side above the wall top; gable walls keep the facade style.
 - `roads.glb`: primitives grouped by material `asphalt | unpaved | path`. `TEXCOORD_0` u = meters along road, v ∈ [0,1] across. Budget ≤ 120k triangles.
 - `water.glb`: flat polygons at terrain min − 0.5 m.
 - `props.json`: `{ "props": [{ "type": "streetlight|tree|water_tank|rebar|powerpole|shrine|sign|awning|billboard|taxi_spawn|ped_spawn", "x": 0, "y": 0, "z": 0, "rotY": 0, "scale": 1 }] }` — tile-local coords, Y absolute (elevation − 1300).

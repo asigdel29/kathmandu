@@ -17,8 +17,8 @@ export interface BuildingInput {
 export const ROOF_PITCH = 0.35;
 export const PITCHED_MAX_VERTICES = 6;
 export const PITCHED_MIN_FILL = 0.8;
-/** Index of `tile_roof` in world/style/building-styles.json. */
-const TILE_ROOF_STYLE = 8;
+/** `_STYLE` of pitched roof slopes: index of `tile_roof` in world/style/building-styles.json (8). */
+export const TILE_ROOF_STYLE = styles.styles.indexOf('tile_roof');
 
 /**
  * Override wins ('flat' forces flat, 'pitched' forces pitched). Otherwise pitched iff the zone ends
