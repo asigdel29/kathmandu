@@ -1,0 +1,26 @@
+{
+  "zone": "suburb",
+  "defaultLevels": 4,
+  "buildings": {
+    "a5346181": {
+      "levels": 2,
+      "roof": "flat",
+      "style": "temple_brick",
+      "name": "Bijeshwori Temple"
+    },
+    "a413701004": {
+      "levels": 2,
+      "roof": "pitched",
+      "style": "temple_brick",
+      "name": "Ganesh Mandir"
+    },
+    "a604736032": {
+      "levels": 3,
+      "roof": "flat",
+      "style": "temple_brick",
+      "name": "Sanghaaram Bihar"
+    }
+  },
+  "roads": {},
+  "notes": "Dense residential district on the west bank of the Bishnumati. Default storey count raised to 4; Bijeshwori courtyard temple, Ganesh shrine and Sanghaaram Bihar styled as brick temples."
+}
