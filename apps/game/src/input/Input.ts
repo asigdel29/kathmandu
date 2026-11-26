@@ -1,6 +1,6 @@
 import * as THREE from 'three/webgpu';
 
-const TRACKED = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'Space', 'KeyE']);
+const TRACKED = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'Space', 'KeyE', 'KeyP']);
 
 export class Input {
   readonly lookDelta = { x: 0, y: 0 };
@@ -31,6 +31,7 @@ export class Input {
   get run(): boolean { return this.down.has('ShiftLeft'); }
   get jumpPressed(): boolean { return this.pressed.has('Space'); }
   get interactPressed(): boolean { return this.pressed.has('KeyE'); }
+  get pausePressed(): boolean { return this.pressed.has('KeyP'); }
   get pointerLocked(): boolean { return this.locked; }
 
   /** Camera-relative unit vector on the XZ plane; zero when no movement key is held. */

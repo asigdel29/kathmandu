@@ -1,5 +1,5 @@
 {
-  "styles": ["newari_brick", "rcc_plaster_white", "rcc_plaster_pastel", "rcc_unfinished", "commercial_glass", "tin_shed", "temple_brick", "institutional"],
+  "styles": ["newari_brick", "rcc_plaster_white", "rcc_plaster_pastel", "rcc_unfinished", "commercial_glass", "tin_shed", "temple_brick", "institutional", "tile_roof"],
   "levelHeightM": 3.1, "parapetM": 0.6,
   "defaultLevels": { "old-core": 4, "patan-core": 3, "bhaktapur-core": 3, "kirtipur-core": 3, "commercial": 5, "suburb": 3, "hills": 2, "industrial": 1, "airport": 2 },
   "mix": {

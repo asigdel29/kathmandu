@@ -1,0 +1,204 @@
+{
+  "zone": "old-core",
+  "buildings": {
+    "a421162988": {
+      "remove": true
+    },
+    "a2834304974": {
+      "remove": true
+    },
+    "a2834304976": {
+      "remove": true
+    },
+    "a367116836": {
+      "levels": 3,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a367125960": {
+      "levels": 5,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a2829201616": {
+      "levels": 3,
+      "roof": "flat",
+      "style": "temple_brick"
+    },
+    "a2829186662": {
+      "levels": 4,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a371764562": {
+      "levels": 3,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a495002778": {
+      "levels": 3,
+      "roof": "flat",
+      "style": "institutional"
+    },
+    "a5377995": {
+      "levels": 3,
+      "roof": "flat",
+      "style": "newari_brick"
+    },
+    "a273052960": {
+      "levels": 3,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a423700786": {
+      "levels": 3,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a841595018": {
+      "levels": 1
+    },
+    "a1813572742": {
+      "levels": 2
+    },
+    "a1817722802": {
+      "levels": 1
+    },
+    "a418651480": {
+      "levels": 6
+    },
+    "a619024740": {
+      "levels": 6
+    },
+    "a673617560": {
+      "levels": 3
+    },
+    "a1342033736": {
+      "levels": 4
+    },
+    "a1347109472": {
+      "levels": 4
+    },
+    "a223969834": {
+      "levels": 3,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a223969854": {
+      "levels": 3,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a338859028": {
+      "levels": 3,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a338859036": {
+      "levels": 3,
+      "style": "temple_brick"
+    },
+    "a338859050": {
+      "levels": 3,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a392523490": {
+      "levels": 1,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a393618692": {
+      "levels": 1,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a393618924": {
+      "levels": 3,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a398593814": {
+      "levels": 1,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a398593816": {
+      "levels": 3,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a418651492": {
+      "levels": 3,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a611493686": {
+      "levels": 1,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a840573518": {
+      "levels": 1,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a840573570": {
+      "levels": 1,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a1002854156": {
+      "levels": 3,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a1039847302": {
+      "levels": 1,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a1039847308": {
+      "levels": 1,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a1039847324": {
+      "levels": 1,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a1039868610": {
+      "levels": 1,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a1814096012": {
+      "levels": 1,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a2054716228": {
+      "levels": 3,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a2057709726": {
+      "levels": 1,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a2705730748": {
+      "levels": 1,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a2830755002": {
+      "levels": 1,
+      "roof": "pitched",
+      "style": "temple_brick"
+    }
+  },
+  "roads": {},
+  "notes": "Durbar Square, Makhan Tole and Indra Chowk. Temples get brick style and pitched roofs; bad height tags (0.5-1 m) replaced by levels; three footprints drawn across roads removed."
+}

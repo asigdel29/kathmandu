@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { HEIGHTMAP_N } from '@ktm/geo';
 import { Nav, PropsFile, TileMeta } from '@ktm/schema';
@@ -21,6 +21,27 @@ it('builds a fixture tile with valid meta, nav and props', async () => {
   expect(props.props.filter((p) => p.type === 'streetlight')).toHaveLength(3);
   expect(readFileSync(`${dir}/height.f32`).byteLength).toBe(HEIGHTMAP_N * HEIGHTMAP_N * 4);
   expect(res.meta.inputsHash).toBe(meta.inputsHash);
+});
+
+it('gables the 20x15 fixture building in a core zone unless overridden flat', async () => {
+  // Flat: 8 wall + 2 roof triangles. Pitched: 8 wall + 2 gable + 4 slope triangles, no roof props.
+  const cases: [object, number][] = [
+    [{ zone: 'old-core' }, 14],
+    [{ zone: 'old-core', buildings: { w100: { roof: 'flat' } } }, 10],
+    [{ zone: 'suburb' }, 10],
+    [{ zone: 'suburb', buildings: { w100: { roof: 'pitched' } } }, 14],
+  ];
+  for (const [ov, tris] of cases) {
+    const inp = fixtureInputs();
+    mkdirSync(`${inp.worldDir}/tiles/x14_y17`, { recursive: true });
+    writeFileSync(`${inp.worldDir}/tiles/x14_y17/overrides.json`, JSON.stringify(ov));
+    const res = await buildTile('x14_y17', { ...inp, outDir: `${inp.outRoot}/x14_y17`, quiet: true });
+    expect(res.meta.triangles.buildings).toBe(tris);
+    if (tris === 14) {
+      const props = PropsFile.parse(JSON.parse(readFileSync(`${res.dir}/props.json`, 'utf8')));
+      expect(props.props.some((p) => p.type === 'water_tank' || p.type === 'rebar')).toBe(false);
+    }
+  }
 });
 
 it('hashes inputs deterministically', async () => {
