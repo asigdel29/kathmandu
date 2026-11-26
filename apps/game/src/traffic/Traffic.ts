@@ -19,6 +19,8 @@ export interface TrafficOptions {
   spawnRadius: number;
   /** Once the cap has been reached, respawns keep at least this far from the player so they do not pop up in view, m. */
   minSpawnDistance: number;
+  /** Spawns always keep at least this far from the player, m. */
+  playerClearance: number;
   /** Vehicles farther than this from the player are removed, m. */
   despawnRadius: number;
   /** At a node with three or more edges, yield while another vehicle with priority is within this distance of it, m. */
@@ -29,7 +31,7 @@ export interface TrafficOptions {
 }
 
 export const TRAFFIC_DEFAULTS: TrafficOptions = {
-  max: 60, spawnRadius: 300, minSpawnDistance: 60, despawnRadius: 450, yieldRadius: 8, spawnAttempts: 8, random: Math.random,
+  max: 60, spawnRadius: 300, minSpawnDistance: 60, playerClearance: 25, despawnRadius: 450, yieldRadius: 8, spawnAttempts: 8, random: Math.random,
 };
 
 export interface Agent {
@@ -71,6 +73,12 @@ const SPAWN_CLEARANCE_M = 6;
 const MIN_SPAWN_EDGE_M = 8;
 /** Below this distance to the next edge, its lower speed limit applies, m. */
 const LIMIT_PREVIEW_M = 25;
+/** Obstacles (player, drivable vehicles) are noticed this far ahead, m. */
+const OBSTACLE_LOOKAHEAD_M = 30;
+/** Lateral reach beyond half the vehicle width within which an obstacle blocks the lane, m. */
+const OBSTACLE_MARGIN_M = 1.5;
+/** Assumed half-length of an obstacle, m. */
+const OBSTACLE_HALF_M = 1.5;
 
 const kmh = (v: number) => v / 3.6;
 const entryNode = (a: { edge: GraphEdge; forward: boolean }) => (a.forward ? a.edge.from : a.edge.to);
@@ -108,7 +116,8 @@ export class TrafficSim {
     return a;
   }
 
-  step(dt: number, player: XZ): void {
+  /** obstacles: things in the world traffic must not drive into (the player, the drivable vehicles), world XZ. */
+  step(dt: number, player: XZ, obstacles: readonly XZ[] = []): void {
     this.despawn(player);
     this.spawn(player);
     if (this.agents.length >= this.opts.max) this.filled = true;
@@ -139,6 +148,8 @@ export class TrafficSim {
     for (const a of this.agents) {
       const limit = this.limitFor(a);
       let { gap, dv } = this.leader(a, lanes);
+      const block = this.obstacleGap(a, obstacles);
+      if (block < gap) { gap = block; dv = a.v; }
       a.yielding = false;
       const stop = this.yieldStop(a, near);
       if (stop !== undefined && a.yieldTime < YIELD_PATIENCE_S && stop < gap) { gap = stop; dv = a.v; a.yielding = true; }
@@ -188,7 +199,7 @@ export class TrafficSim {
     if (this.agents.length >= o.max) return;
     const c = this.spawnCandidates(player);
     if (c.edges.length === 0) return;
-    const minD = this.filled ? o.minSpawnDistance : 0;
+    const minD = Math.max(o.playerClearance, this.filled ? o.minSpawnDistance : 0);
     for (let k = 0; k < o.spawnAttempts && this.agents.length < o.max; k++) {
       const pick = o.random() * c.total;
       let lo = 0; let hi = c.cum.length - 1;
@@ -263,6 +274,20 @@ export class TrafficSim {
   }
 
   private vMax(a: Agent): number { return Math.min(kmh(a.edge.speed), a.maxSpeed); }
+
+  /** Gap to the nearest obstacle straight ahead within half a vehicle width plus OBSTACLE_MARGIN_M of the heading line. */
+  private obstacleGap(a: Agent, obstacles: readonly XZ[]): number {
+    let best = Infinity;
+    const fx = Math.sin(a.yaw); const fz = Math.cos(a.yaw);
+    for (const o of obstacles) {
+      const dx = o.x - a.x; const dz = o.z - a.z;
+      const ahead = dx * fx + dz * fz;
+      if (ahead <= 0 || ahead > OBSTACLE_LOOKAHEAD_M) continue;
+      if (Math.abs(dx * fz - dz * fx) > a.width / 2 + OBSTACLE_MARGIN_M) continue;
+      best = Math.min(best, Math.max(0, ahead - a.length / 2 - OBSTACLE_HALF_M));
+    }
+    return best;
+  }
 
   /** Bumper-to-bumper gap to the nearest vehicle ahead along the planned route (Infinity if none within the lookahead). */
   private leader(a: Agent, lanes: Map<number, Agent[]>): { gap: number; dv: number } {
@@ -402,10 +427,10 @@ export class Traffic {
 
   get count(): number { return this.sim.agents.length; }
 
-  /** Advance by dt seconds of simulated time around the player, then sync meshes and colliders. */
-  update(dt: number, player: XZ): void {
+  /** Advance by dt seconds of simulated time around the player, then sync meshes and colliders. Traffic stops for the obstacles (default: the player). */
+  update(dt: number, player: XZ, obstacles: readonly XZ[] = [player]): void {
     const n = Math.max(1, Math.ceil(dt / MAX_SUBSTEP_S));
-    for (let i = 0; i < n; i++) this.sim.step(dt / n, player);
+    for (let i = 0; i < n; i++) this.sim.step(dt / n, player, obstacles);
     const counts = new Map<VehicleType, number>();
     for (const a of this.sim.agents) {
       const tm = this.meshes.get(a.type)!;

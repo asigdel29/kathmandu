@@ -69,7 +69,7 @@ describe('TrafficSim', () => {
   it('places an eastbound vehicle north of the centreline (left-hand traffic)', () => {
     const a = node(0, 50); const b = node(200, 50);
     const g = graphOf({ nodes: [a, b], edges: [edge(a, b)] });
-    const sim = new TrafficSim(g, SPECS, { max: 0 });
+    const sim = new TrafficSim(g, SPECS, { max: 0, random: rng(1) });
     const car = sim.addAgent('taxi', findEdge(g, a.id, b.id), true, 50, 0);
     expect(car.z).toBeCloseTo(O.z + 50 - 8 / 4, 9);
     expect(car.x).toBeCloseTo(O.x + 50, 9);
@@ -126,7 +126,7 @@ describe('TrafficSim', () => {
   it('does not yield at a plain two-edge node', () => {
     const a = node(100, 100); const b = node(200, 100); const c = node(300, 100);
     const g = graphOf({ nodes: [a, b, c], edges: [edge(a, b), edge(b, c)] });
-    const sim = new TrafficSim(g, SPECS, { max: 0 });
+    const sim = new TrafficSim(g, SPECS, { max: 0, random: rng(1) });
     const me = sim.addAgent('taxi', findEdge(g, a.id, b.id), true, 90, 4);
     sim.addAgent('taxi', findEdge(g, b.id, c.id), false, 95, 0);
     sim.step(1 / 30, world(200, 100));
@@ -154,6 +154,20 @@ describe('TrafficSim', () => {
     }
     expect(sim.agents.length).toBe(60);
     expect(moving / samples).toBeGreaterThan(0.5);
+  });
+
+  it('brakes for an obstacle in its lane ahead (the player or a parked vehicle) but not for one beside or behind', () => {
+    const a = node(0, 50); const b = node(300, 50);
+    const g = graphOf({ nodes: [a, b], edges: [edge(a, b)] });
+    const run = (ob: { x: number; z: number }) => {
+      const sim = new TrafficSim(g, SPECS, { max: 0, random: rng(1) });
+      const car = sim.addAgent('taxi', findEdge(g, a.id, b.id), true, 100, 3);
+      sim.step(1 / 30, world(0, 0), [world(ob.x, ob.z)]);
+      return car.accel;
+    };
+    expect(run({ x: 108, z: 48 })).toBeLessThan(-1);
+    expect(run({ x: 108, z: 56 })).toBeGreaterThan(0);
+    expect(run({ x: 90, z: 48 })).toBeGreaterThan(0);
   });
 
   it('drops vehicles whose edge streamed out', () => {
