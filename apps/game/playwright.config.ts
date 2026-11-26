@@ -16,7 +16,8 @@ export default defineConfig({
   use: {
     ...devices['Desktop Chrome'],
     baseURL: `http://localhost:${PORT}`,
-    viewport: { width: 960, height: 540 },
+    // Small canvas: this is a physics test, and software rendering cost scales with pixels.
+    viewport: { width: 480, height: 270 },
     launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] },
   },
   projects: [{ name: 'chromium' }],

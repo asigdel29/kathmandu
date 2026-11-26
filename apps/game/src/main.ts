@@ -24,6 +24,8 @@ declare global { interface Window { __ktmReady?: boolean; __ktm?: unknown; __ktm
 const STEP = 1 / 60;
 // The 0.25 s frame clamp is the binding limit: 15 steps, so frame rates down to 4 fps still simulate in real time.
 const MAX_STEPS = 15;
+// `autodrive=1` is for headless test runs, where a software renderer can drop to ~1 fps; allow up to 1.5 s per frame there.
+const AUTODRIVE_MAX_FRAME_S = 1.5;
 const WARM_FRAME_MS = 1000;
 const ENTER_RADIUS_M = 3;
 const AUTODRIVE_S = 5;
@@ -142,7 +144,9 @@ async function main(): Promise<void> {
     const dt = Math.min(frameDt, 0.05);
     let steps = 0;
     if (!config.freeze) {
-      ({ steps, acc } = fixedSteps(acc, frameDt, STEP, MAX_STEPS));
+      ({ steps, acc } = config.autodrive
+        ? fixedSteps(acc, frameDt, STEP, Math.ceil(AUTODRIVE_MAX_FRAME_S / STEP), AUTODRIVE_MAX_FRAME_S)
+        : fixedSteps(acc, frameDt, STEP, MAX_STEPS));
       if (steps > 0 && input.interactPressed) {
         if (driving) exit(driving);
         else { const v = nearestWithin(player.position, vehicles, ENTER_RADIUS_M); if (v) enter(v); }

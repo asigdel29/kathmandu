@@ -55,10 +55,10 @@ export const MAX_FRAME_S = 0.25;
 
 /**
  * Fixed-step accumulator: how many `step`-sized substeps to run this frame and the carried remainder.
- * The frame time is clamped to 0.25 s; past `maxSteps` the backlog is dropped so a slow frame cannot spiral.
+ * The frame time is clamped to `maxFrame` (0.25 s by default); past `maxSteps` the backlog is dropped so a slow frame cannot spiral.
  */
-export function fixedSteps(acc: number, frameDt: number, step: number, maxSteps: number): { steps: number; acc: number } {
-  let a = acc + Math.min(Math.max(frameDt, 0), MAX_FRAME_S);
+export function fixedSteps(acc: number, frameDt: number, step: number, maxSteps: number, maxFrame = MAX_FRAME_S): { steps: number; acc: number } {
+  let a = acc + Math.min(Math.max(frameDt, 0), maxFrame);
   let steps = Math.floor(a / step + 1e-9);
   a -= steps * step;
   if (steps > maxSteps) { steps = maxSteps; a = a % step; }

@@ -71,6 +71,9 @@ describe('fixedSteps', () => {
   });
   it('clamps the frame time to 0.25 s and ignores negative time', () => {
     expect(fixedSteps(0, 5, 1 / 60, 100).steps).toBe(15);
+    // Headless test runs raise the frame clamp so a 1 fps software renderer still simulates in real time.
+    expect(fixedSteps(0, 1.2, 1 / 60, 200, 1.5).steps).toBe(72);
+    expect(fixedSteps(0, 5, 1 / 60, 200, 1.5).steps).toBe(90);
     expect(fixedSteps(0, -1, 1 / 60, 8)).toMatchObject({ steps: 0, acc: 0 });
   });
 });
