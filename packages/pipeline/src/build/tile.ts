@@ -176,6 +176,7 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
   const mats = { asphalt: new MeshBuilder(), unpaved: new MeshBuilder(), path: new MeshBuilder() };
   const nodes = new Map<string, NavNode>();
   const edges: NavEdge[] = [];
+  const seamStubs: string[] = [];
   let roadCount = 0;
   for (const f of roads) {
     const ov = overrides.roads[f.id];
@@ -188,15 +189,24 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
     ribbon(pts, spec.width, yAt, mats[spec.material], 0.08);
     roadCount++;
     if (spec.vehicle) {
-      const ids = pts.map(([x, z], i) => {
+      const ids: { nid: string; node: NavNode }[] = [];
+      pts.forEach(([x, z], i) => {
         const nid = navNodeId(origin.x + x, origin.z + z);
         const border = (i === 0 && t.borderStart === true) || (i === pts.length - 1 && t.borderEnd === true);
-        return { nid, node: { id: nid, x, y: yAt(x, z), z, border } };
+        const node = { id: nid, x, y: yAt(x, z), z, border };
+        const last = ids[ids.length - 1];
+        // Vertices that quantise to the same id collapse into one. A seam crossing wins, so the
+        // node keeps its exact edge position and border flag instead of being dropped together
+        // with the zero-length edge.
+        if (last && last.nid === nid) { if (border) last.node = node; }
+        else ids.push({ nid, node });
       });
+      // A road that collapses to a single node has no edge to register it with. If it carries a
+      // seam crossing, hand the flag to the junction node that other roads created here.
+      if (ids.length === 1 && ids[0]!.node.border) seamStubs.push(ids[0]!.nid);
       const oneway = t.oneway === 'yes' || t.junction === 'roundabout';
       for (let i = 0; i + 1 < ids.length; i++) {
         const a = ids[i]!, b = ids[i + 1]!;
-        if (a.nid === b.nid) continue;
         for (const n of [a, b]) {
           const prev = nodes.get(n.nid);
           if (!prev) nodes.set(n.nid, { ...n.node });
@@ -208,6 +218,8 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
     if (spec.lights) generated.push(...alongPolyline(pts, 30, -(spec.width / 2 + 0.8), yAt));
     if (t.highway === 'residential' || t.highway === 'unclassified') generated.push(...alongPolyline(pts, 40, spec.width / 2 + 0.6, yAt, 'powerpole'));
   }
+
+  for (const nid of seamStubs) { const n = nodes.get(nid); if (n) n.border = true; }
 
   // 9. trees
   for (const g of greens) if (g.trees > 0) generated.push(...treesInRing(g.ring, yAt, hash01, g.id, g.trees));
