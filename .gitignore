@@ -7,11 +7,3 @@ data/
 .env
 apps/game/dist/
 apps/game/public/world
-
-# local-only operator files, never committed
-AGENTS.md
-CLAUDE.md
-.hermes/
-.claude/
-.cursor/
-.cursorrules

@@ -96,7 +96,7 @@ Target: dense, lived-in, sun-drenched realism with a cinematic third-person came
 ## 9. Commit and PR rules
 
 - `git config user.name "Anubhav Sigdel"`, `git config user.email "64096825+asigdel29@users.noreply.github.com"` in every worktree.
-- No `Co-Authored-By`, no "Generated with", no tool names in commits, PR bodies, code comments, docs or `tile.md`.
+- Commit messages and PR bodies describe the change itself. No trailers or footers other than the human-author line.
 - Conventional Commits: `feat(tile x14_y17): curate Basantapur`, `feat(hero swayambhunath): model stupa`, `fix(pipeline): ...`.
 - Never rebase or force-push a pushed branch; merge `main` into the branch instead.
 - Commit only inside the allowed paths of the change.
