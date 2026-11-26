@@ -1,0 +1,15 @@
+{ "props": [
+  {"type":"shrine","x":366.9,"y":1.16,"z":161.2,"rotY":1.57,"scale":1},
+  {"type":"shrine","x":62.2,"y":24.85,"z":8.4,"rotY":3.14,"scale":1},
+  {"type":"taxi_spawn","x":790.7,"y":1.93,"z":615.9,"rotY":-0.48,"scale":1},
+  {"type":"taxi_spawn","x":763.0,"y":1.61,"z":669.1,"rotY":-0.48,"scale":1},
+  {"type":"taxi_spawn","x":722.9,"y":2.29,"z":749.7,"rotY":-0.48,"scale":1},
+  {"type":"ped_spawn","x":58.1,"y":2.10,"z":672.1,"rotY":0,"scale":1},
+  {"type":"ped_spawn","x":72.7,"y":3.33,"z":589.5,"rotY":0,"scale":1},
+  {"type":"ped_spawn","x":568.4,"y":2.25,"z":530.7,"rotY":0,"scale":1},
+  {"type":"ped_spawn","x":539.9,"y":-1.15,"z":618.3,"rotY":0,"scale":1},
+  {"type":"ped_spawn","x":557.9,"y":-1.08,"z":647.9,"rotY":0,"scale":1},
+  {"type":"ped_spawn","x":699.1,"y":-0.99,"z":565.0,"rotY":0,"scale":1},
+  {"type":"ped_spawn","x":742.2,"y":0.73,"z":679.6,"rotY":0,"scale":1},
+  {"type":"ped_spawn","x":762.6,"y":1.41,"z":639.6,"rotY":0,"scale":1}
+] }
