@@ -44,37 +44,37 @@ describe('TrafficSim', () => {
     const player = world(350, 350);
     for (let i = 0; i < 300; i++) {
       sim.step(1 / 30, player);
-      expect(sim.agents.length).toBeLessThanOrEqual(25);
+      expect(sim.cars.length).toBeLessThanOrEqual(25);
     }
-    expect(sim.agents.length).toBe(25);
-    for (const a of sim.agents) expect(Math.hypot(a.x - player.x, a.z - player.z)).toBeLessThan(450);
+    expect(sim.cars.length).toBe(25);
+    for (const a of sim.cars) expect(Math.hypot(a.x - player.x, a.z - player.z)).toBeLessThan(450);
   });
 
   it('despawns beyond 450 m and respawns near the player', () => {
     const g = graphOf(gridNav());
     const sim = new TrafficSim(g, SPECS, { max: 10, spawnRadius: 120, random: rng(5) });
     for (let i = 0; i < 10; i++) sim.step(1 / 30, world(150, 150));
-    const first = new Set(sim.agents);
+    const first = new Set(sim.cars);
     expect(first.size).toBe(10);
     // Jump 700 m diagonally (beyond the 500 m grid): everything spawned around the first spot is now > 450 m away.
     sim.step(1 / 30, world(850, 850));
-    expect(sim.agents.some((a) => first.has(a))).toBe(false);
+    expect(sim.cars.some((a) => first.has(a))).toBe(false);
     // Back on the grid, the cap refills around the new position.
     const p = world(550, 550);
     for (let i = 0; i < 10; i++) sim.step(1 / 30, p);
-    expect(sim.agents.length).toBe(10);
-    for (const a of sim.agents) expect(Math.hypot(a.x - p.x, a.z - p.z)).toBeLessThanOrEqual(130);
+    expect(sim.cars.length).toBe(10);
+    for (const a of sim.cars) expect(Math.hypot(a.x - p.x, a.z - p.z)).toBeLessThanOrEqual(130);
   });
 
   it('places an eastbound vehicle north of the centreline (left-hand traffic)', () => {
     const a = node(0, 50); const b = node(200, 50);
     const g = graphOf({ nodes: [a, b], edges: [edge(a, b)] });
     const sim = new TrafficSim(g, SPECS, { max: 0, random: rng(1) });
-    const car = sim.addAgent('taxi', findEdge(g, a.id, b.id), true, 50, 0);
+    const car = sim.addCar('taxi', findEdge(g, a.id, b.id), true, 50, 0);
     expect(car.z).toBeCloseTo(O.z + 50 - 8 / 4, 9);
     expect(car.x).toBeCloseTo(O.x + 50, 9);
     expect(car.yaw).toBeCloseTo(Math.PI / 2, 9); // forward = (sin yaw, cos yaw) = +x
-    const back = sim.addAgent('taxi', findEdge(g, a.id, b.id), false, 50, 0);
+    const back = sim.addCar('taxi', findEdge(g, a.id, b.id), false, 50, 0);
     expect(back.z).toBeCloseTo(O.z + 50 + 2, 9);
   });
 
@@ -84,15 +84,15 @@ describe('TrafficSim', () => {
     const g = graphOf({ nodes: n, edges: n.map((p, i) => edge(p, n[(i + 1) % 4]!, true, 30)) });
     const sim = new TrafficSim(g, SPECS, { max: 0, random: rng(9) });
     const e0 = findEdge(g, n[0]!.id, n[1]!.id);
-    for (let i = 0; i < 8; i++) sim.addAgent(i % 2 ? 'motorbike' : 'taxi', e0, true, 5 + i * 11, i % 3);
+    for (let i = 0; i < 8; i++) sim.addCar(i % 2 ? 'motorbike' : 'taxi', e0, true, 5 + i * 11, i % 3);
     const limit = 30 / 3.6;
-    const along = (a: (typeof sim.agents)[number]) => {
+    const along = (a: (typeof sim.cars)[number]) => {
       const k = n.findIndex((p) => p.id === (a.forward ? a.edge.from : a.edge.to));
       return k * 100 + a.s;
     };
     for (let step = 0; step < 1500; step++) {
       sim.step(1 / 30, world(150, 150));
-      const order = [...sim.agents].sort((p, q) => along(p) - along(q));
+      const order = [...sim.cars].sort((p, q) => along(p) - along(q));
       for (let i = 0; i < order.length; i++) {
         const me = order[i]!; const lead = order[(i + 1) % order.length]!;
         const gap = ((along(lead) - along(me) + 400) % 400) - (me.length + lead.length) / 2;
@@ -100,7 +100,7 @@ describe('TrafficSim', () => {
         expect(me.v).toBeLessThanOrEqual(limit + 1e-9);
       }
     }
-    expect(sim.agents.length).toBe(8);
+    expect(sim.cars.length).toBe(8);
   });
 
   it('yields at a junction of three or more edges to a vehicle closer to the node', () => {
@@ -110,13 +110,13 @@ describe('TrafficSim', () => {
     const mk = () => new TrafficSim(g, SPECS, { max: 0, random: rng(2) });
 
     const free = mk();
-    const lone = free.addAgent('taxi', findEdge(g, w.id, c.id), true, 85, 4);
+    const lone = free.addCar('taxi', findEdge(g, w.id, c.id), true, 85, 4);
     free.step(1 / 30, world(300, 300));
     expect(lone.accel).toBeGreaterThan(0);
 
     const busy = mk();
-    const me = busy.addAgent('taxi', findEdge(g, w.id, c.id), true, 85, 4); // 15 m out
-    const other = busy.addAgent('taxi', findEdge(g, s.id, c.id), true, 95, 0); // 5 m out on the south arm, travelling north
+    const me = busy.addCar('taxi', findEdge(g, w.id, c.id), true, 85, 4); // 15 m out
+    const other = busy.addCar('taxi', findEdge(g, s.id, c.id), true, 95, 0); // 5 m out on the south arm, travelling north
     busy.step(1 / 30, world(300, 300));
     expect(me.accel).toBeLessThan(0);
     expect(me.yielding).toBe(true);
@@ -127,8 +127,8 @@ describe('TrafficSim', () => {
     const a = node(100, 100); const b = node(200, 100); const c = node(300, 100);
     const g = graphOf({ nodes: [a, b, c], edges: [edge(a, b), edge(b, c)] });
     const sim = new TrafficSim(g, SPECS, { max: 0, random: rng(1) });
-    const me = sim.addAgent('taxi', findEdge(g, a.id, b.id), true, 90, 4);
-    sim.addAgent('taxi', findEdge(g, b.id, c.id), false, 95, 0);
+    const me = sim.addCar('taxi', findEdge(g, a.id, b.id), true, 90, 4);
+    sim.addCar('taxi', findEdge(g, b.id, c.id), false, 95, 0);
     sim.step(1 / 30, world(200, 100));
     expect(me.yielding).toBe(false);
   });
@@ -140,8 +140,8 @@ describe('TrafficSim', () => {
     let moving = 0; let samples = 0;
     for (let step = 0; step < 3000; step++) {
       sim.step(1 / 20, player);
-      const lanes = new Map<string, typeof sim.agents>();
-      for (const a of sim.agents) {
+      const lanes = new Map<string, typeof sim.cars>();
+      for (const a of sim.cars) {
         expect(Number.isFinite(a.x + a.z + a.v + a.s)).toBe(true);
         const k = `${a.edge.id}:${a.forward}`;
         lanes.set(k, [...(lanes.get(k) ?? []), a]);
@@ -150,9 +150,9 @@ describe('TrafficSim', () => {
         l.sort((p, q) => p.s - q.s);
         for (let i = 1; i < l.length; i++) expect(l[i]!.s - l[i - 1]!.s - (l[i]!.length + l[i - 1]!.length) / 2).toBeGreaterThanOrEqual(0);
       }
-      if (step >= 2000) { samples += sim.agents.length; moving += sim.agents.filter((a) => a.v > 0.5).length; }
+      if (step >= 2000) { samples += sim.cars.length; moving += sim.cars.filter((a) => a.v > 0.5).length; }
     }
-    expect(sim.agents.length).toBe(60);
+    expect(sim.cars.length).toBe(60);
     expect(moving / samples).toBeGreaterThan(0.5);
   });
 
@@ -161,7 +161,7 @@ describe('TrafficSim', () => {
     const g = graphOf({ nodes: [a, b], edges: [edge(a, b)] });
     const run = (ob: { x: number; z: number }) => {
       const sim = new TrafficSim(g, SPECS, { max: 0, random: rng(1) });
-      const car = sim.addAgent('taxi', findEdge(g, a.id, b.id), true, 100, 3);
+      const car = sim.addCar('taxi', findEdge(g, a.id, b.id), true, 100, 3);
       sim.step(1 / 30, world(0, 0), [world(ob.x, ob.z)]);
       return car.accel;
     };
@@ -176,10 +176,10 @@ describe('TrafficSim', () => {
     const gone: number[] = [];
     sim.onDespawn = (a) => gone.push(a.id);
     sim.step(1 / 30, world(350, 350));
-    expect(sim.agents.length).toBe(5);
+    expect(sim.cars.length).toBe(5);
     g.removeTile(T);
     sim.step(1 / 30, world(350, 350));
-    expect(sim.agents.length).toBe(0);
+    expect(sim.cars.length).toBe(0);
     expect(gone).toHaveLength(5);
   });
 });

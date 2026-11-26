@@ -34,7 +34,7 @@ export const TRAFFIC_DEFAULTS: TrafficOptions = {
   max: 60, spawnRadius: 300, minSpawnDistance: 60, playerClearance: 25, despawnRadius: 450, yieldRadius: 8, spawnAttempts: 8, random: Math.random,
 };
 
-export interface Agent {
+export interface TrafficCar {
   id: number;
   type: VehicleType;
   length: number; width: number;
@@ -90,9 +90,9 @@ const laneKey = (e: GraphEdge, forward: boolean) => (forward ? e.id : -e.id);
  * route choice at nodes, IDM car-following along the planned route, right of way at junctions and left-hand lane poses.
  */
 export class TrafficSim {
-  readonly agents: Agent[] = [];
-  onSpawn?: (a: Agent) => void;
-  onDespawn?: (a: Agent) => void;
+  readonly cars: TrafficCar[] = [];
+  onSpawn?: (a: TrafficCar) => void;
+  onDespawn?: (a: TrafficCar) => void;
   private opts: TrafficOptions;
   private nextId = 1;
   private filled = false;
@@ -103,15 +103,15 @@ export class TrafficSim {
   }
 
   /** Place a vehicle explicitly (tests and scripted scenes); s is measured from the entry node in the travel direction. */
-  addAgent(type: VehicleType, edge: GraphEdge, forward: boolean, s: number, v = 0): Agent {
+  addCar(type: VehicleType, edge: GraphEdge, forward: boolean, s: number, v = 0): TrafficCar {
     const spec = this.specs[type];
-    const a: Agent = {
+    const a: TrafficCar = {
       id: this.nextId++, type, length: spec.length, width: spec.width, maxSpeed: kmh(spec.maxSpeedKmh), eagerness: 0.85 + 0.15 * this.opts.random(),
       edge, forward, s, v, accel: 0, yielding: false, yieldTime: 0, route: [], x: 0, y: 0, z: 0, yaw: 0,
     };
     this.planRoute(a);
     this.pose(a);
-    this.agents.push(a);
+    this.cars.push(a);
     this.onSpawn?.(a);
     return a;
   }
@@ -120,23 +120,23 @@ export class TrafficSim {
   step(dt: number, player: XZ, obstacles: readonly XZ[] = []): void {
     this.despawn(player);
     this.spawn(player);
-    if (this.agents.length >= this.opts.max) this.filled = true;
-    if (dt <= 0 || this.agents.length === 0) return;
+    if (this.cars.length >= this.opts.max) this.filled = true;
+    if (dt <= 0 || this.cars.length === 0) return;
 
     // Lanes (directed edges) sorted by position, and who is near which junction node.
-    const lanes = new Map<number, Agent[]>();
-    for (const a of this.agents) {
+    const lanes = new Map<number, TrafficCar[]>();
+    for (const a of this.cars) {
       const k = laneKey(a.edge, a.forward);
       const l = lanes.get(k); if (l) l.push(a); else lanes.set(k, [a]);
     }
     for (const l of lanes.values()) l.sort((p, q) => p.s - q.s);
-    const near = new Map<string, { a: Agent; d: number; leaving: boolean }[]>();
-    const reg = (node: string, a: Agent, d: number, leaving: boolean) => {
+    const near = new Map<string, { a: TrafficCar; d: number; leaving: boolean }[]>();
+    const reg = (node: string, a: TrafficCar, d: number, leaving: boolean) => {
       if (d >= this.opts.yieldRadius || this.graph.degree(node) < 3) return;
       const l = near.get(node); const item = { a, d, leaving };
       if (l) l.push(item); else near.set(node, [item]);
     };
-    for (const a of this.agents) {
+    for (const a of this.cars) {
       reg(entryNode(a), a, a.s, true);
       let d = a.edge.length - a.s;
       reg(exitNode(a), a, d, false);
@@ -144,8 +144,8 @@ export class TrafficSim {
     }
 
     // Accelerations from the pre-step state, then integrate.
-    const gaps = new Map<Agent, number>();
-    for (const a of this.agents) {
+    const gaps = new Map<TrafficCar, number>();
+    for (const a of this.cars) {
       const limit = this.limitFor(a);
       let { gap, dv } = this.leader(a, lanes);
       const block = this.obstacleGap(a, obstacles);
@@ -157,20 +157,20 @@ export class TrafficSim {
       a.accel = idmAccel(a.v, limit * a.eagerness, gap, dv, IDM);
       gaps.set(a, gap);
     }
-    for (let i = this.agents.length - 1; i >= 0; i--) {
-      const a = this.agents[i]!;
+    for (let i = this.cars.length - 1; i >= 0; i--) {
+      const a = this.cars[i]!;
       const r = idmStep(a.v, a.accel, dt, this.vMax(a), gaps.get(a));
       a.v = r.v;
-      if (!this.advance(a, r.ds)) { this.agents.splice(i, 1); this.onDespawn?.(a); continue; }
+      if (!this.advance(a, r.ds)) { this.cars.splice(i, 1); this.onDespawn?.(a); continue; }
       this.pose(a);
     }
   }
 
   private despawn(player: XZ): void {
     const far = this.opts.despawnRadius;
-    for (let i = this.agents.length - 1; i >= 0; i--) {
-      const a = this.agents[i]!;
-      if (a.edge.removed || Math.hypot(a.x - player.x, a.z - player.z) > far) { this.agents.splice(i, 1); this.onDespawn?.(a); continue; }
+    for (let i = this.cars.length - 1; i >= 0; i--) {
+      const a = this.cars[i]!;
+      if (a.edge.removed || Math.hypot(a.x - player.x, a.z - player.z) > far) { this.cars.splice(i, 1); this.onDespawn?.(a); continue; }
       // A planned edge streamed out: cut the route there and plan again on what is loaded now.
       const cut = a.route.findIndex((x) => x.edge.removed);
       if (cut >= 0) { a.route.length = cut; this.planRoute(a); }
@@ -196,11 +196,11 @@ export class TrafficSim {
 
   private spawn(player: XZ): void {
     const o = this.opts;
-    if (this.agents.length >= o.max) return;
+    if (this.cars.length >= o.max) return;
     const c = this.spawnCandidates(player);
     if (c.edges.length === 0) return;
     const minD = Math.max(o.playerClearance, this.filled ? o.minSpawnDistance : 0);
-    for (let k = 0; k < o.spawnAttempts && this.agents.length < o.max; k++) {
+    for (let k = 0; k < o.spawnAttempts && this.cars.length < o.max; k++) {
       const pick = o.random() * c.total;
       let lo = 0; let hi = c.cum.length - 1;
       while (lo < hi) { const mid = (lo + hi) >> 1; if (c.cum[mid]! < pick) lo = mid + 1; else hi = mid; }
@@ -213,8 +213,8 @@ export class TrafficSim {
       const p = this.lanePoint(edge, forward, s);
       const d = Math.hypot(p.x - player.x, p.z - player.z);
       if (d > o.spawnRadius || d < minD) continue;
-      if (this.agents.some((a) => (a.edge === edge && a.forward === forward && Math.abs(a.s - s) < SPAWN_SPACING_M) || Math.hypot(a.x - p.x, a.z - p.z) < SPAWN_CLEARANCE_M)) continue;
-      const a = this.addAgent(type, edge, forward, s, 0);
+      if (this.cars.some((a) => (a.edge === edge && a.forward === forward && Math.abs(a.s - s) < SPAWN_SPACING_M) || Math.hypot(a.x - p.x, a.z - p.z) < SPAWN_CLEARANCE_M)) continue;
+      const a = this.addCar(type, edge, forward, s, 0);
       a.v = this.vMax(a) * a.eagerness * (0.5 + 0.5 * o.random());
     }
   }
@@ -226,7 +226,7 @@ export class TrafficSim {
   }
 
   /** Extend the planned route to the lookahead distance. */
-  private planRoute(a: Agent): void {
+  private planRoute(a: TrafficCar): void {
     let ahead = a.edge.length - a.s;
     let cur: Exit = { edge: a.edge, forward: a.forward };
     for (const x of a.route) { ahead += x.edge.length; cur = x; }
@@ -266,17 +266,17 @@ export class TrafficSim {
   }
 
   /** Speed limit of the current edge, eased down early when the next edge is slower, capped at the vehicle's top speed. */
-  private limitFor(a: Agent): number {
+  private limitFor(a: TrafficCar): number {
     let limit = kmh(a.edge.speed);
     const next = a.route[0];
     if (next && a.edge.length - a.s < LIMIT_PREVIEW_M) limit = Math.min(limit, kmh(next.edge.speed));
     return Math.min(limit, a.maxSpeed);
   }
 
-  private vMax(a: Agent): number { return Math.min(kmh(a.edge.speed), a.maxSpeed); }
+  private vMax(a: TrafficCar): number { return Math.min(kmh(a.edge.speed), a.maxSpeed); }
 
   /** Gap to the nearest obstacle straight ahead within half a vehicle width plus OBSTACLE_MARGIN_M of the heading line. */
-  private obstacleGap(a: Agent, obstacles: readonly XZ[]): number {
+  private obstacleGap(a: TrafficCar, obstacles: readonly XZ[]): number {
     let best = Infinity;
     const fx = Math.sin(a.yaw); const fz = Math.cos(a.yaw);
     for (const o of obstacles) {
@@ -290,7 +290,7 @@ export class TrafficSim {
   }
 
   /** Bumper-to-bumper gap to the nearest vehicle ahead along the planned route (Infinity if none within the lookahead). */
-  private leader(a: Agent, lanes: Map<number, Agent[]>): { gap: number; dv: number } {
+  private leader(a: TrafficCar, lanes: Map<number, TrafficCar[]>): { gap: number; dv: number } {
     const lane = lanes.get(laneKey(a.edge, a.forward))!;
     const i = lane.indexOf(a);
     const ahead = lane[i + 1];
@@ -310,7 +310,7 @@ export class TrafficSim {
    * Gap to a virtual stop line before the first junction (three or more edges) ahead where someone else has right of way:
    * a vehicle that has just left the node, or one approaching it that is closer (ties go to the older vehicle).
    */
-  private yieldStop(a: Agent, near: Map<string, { a: Agent; d: number; leaving: boolean }[]>): number | undefined {
+  private yieldStop(a: TrafficCar, near: Map<string, { a: TrafficCar; d: number; leaving: boolean }[]>): number | undefined {
     let d = a.edge.length - a.s;
     let node = exitNode(a);
     const myEdges = new Set<GraphEdge>([a.edge, ...a.route.map((x) => x.edge)]);
@@ -336,7 +336,7 @@ export class TrafficSim {
   }
 
   /** Move along the route; false when the route ran out (the vehicle leaves the simulation). */
-  private advance(a: Agent, ds: number): boolean {
+  private advance(a: TrafficCar, ds: number): boolean {
     a.s += ds;
     while (a.s >= a.edge.length) {
       const next = a.route.shift();
@@ -356,7 +356,7 @@ export class TrafficSim {
     return { x: c.x, y: n0.y + (n1.y - n0.y) * t, z: c.z, yaw: Math.atan2(n1.x - n0.x, n1.z - n0.z) };
   }
 
-  private pose(a: Agent): void { Object.assign(a, this.lanePoint(a.edge, a.forward, a.s)); }
+  private pose(a: TrafficCar): void { Object.assign(a, this.lanePoint(a.edge, a.forward, a.s)); }
 }
 
 /** Distance from p to segment ab in XZ. */
@@ -425,14 +425,14 @@ export class Traffic {
     }
   }
 
-  get count(): number { return this.sim.agents.length; }
+  get count(): number { return this.sim.cars.length; }
 
   /** Advance by dt seconds of simulated time around the player, then sync meshes and colliders. Traffic stops for the obstacles (default: the player). */
   update(dt: number, player: XZ, obstacles: readonly XZ[] = [player]): void {
     const n = Math.max(1, Math.ceil(dt / MAX_SUBSTEP_S));
     for (let i = 0; i < n; i++) this.sim.step(dt / n, player, obstacles);
     const counts = new Map<VehicleType, number>();
-    for (const a of this.sim.agents) {
+    for (const a of this.sim.cars) {
       const tm = this.meshes.get(a.type)!;
       const k = counts.get(a.type) ?? 0; counts.set(a.type, k + 1);
       const ground = this.groundY?.(a.x, a.z);
@@ -463,7 +463,7 @@ export class Traffic {
   /** Number of vehicles that currently have a collider (debug). */
   get colliderCount(): number { return this.colliders.size; }
 
-  private syncCollider(a: Agent, cy: number, yaw: number, player: XZ): void {
+  private syncCollider(a: TrafficCar, cy: number, yaw: number, player: XZ): void {
     const d = Math.hypot(a.x - player.x, a.z - player.z);
     let c = this.colliders.get(a.id);
     if (!c && d > this.colliderRadius) return;
