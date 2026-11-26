@@ -12,6 +12,7 @@ const STYLE_COLORS = [
   '#3b6ea5', // tin_shed
   '#7a2e22', // temple_brick
   '#d8cdb8', // institutional
+  '#6b3b2e', // tile_roof (pitched roof slopes)
 ];
 
 const FLOOR_PITCH = 3.1;
