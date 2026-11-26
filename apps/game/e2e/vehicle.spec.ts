@@ -9,7 +9,8 @@ test('taxi drives off under autodrive', async ({ page }) => {
   const errors: Error[] = [];
   page.on('pageerror', (e) => { errors.push(e); });
 
-  await page.goto('/?tile=x14_y17&vehicle=taxi&autodrive=1');
+  // A physics test: ambient traffic stays off so nothing else is on the road.
+  await page.goto('/?tile=x14_y17&vehicle=taxi&autodrive=1&traffic=0');
   await page.waitForFunction(() => {
     const w = window as unknown as KtmWindow;
     return w.__ktmReady === true || document.getElementById('hud')?.textContent?.startsWith('error:');

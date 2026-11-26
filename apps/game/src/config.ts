@@ -7,6 +7,8 @@ export interface Config {
   vehicle?: VehicleType;
   /** Hold the throttle for a few seconds from ready (scripted checks). */
   autodrive: boolean;
+  /** Ambient traffic; off with `traffic=0`. */
+  traffic: boolean;
 }
 
 export function readConfig(search: string, worldBase: string): Config {
@@ -23,5 +25,6 @@ export function readConfig(search: string, worldBase: string): Config {
     freeze: q.get('freeze') === '1',
     vehicle: vehicle.success ? vehicle.data : undefined,
     autodrive: q.get('autodrive') === '1',
+    traffic: q.get('traffic') !== '0',
   };
 }

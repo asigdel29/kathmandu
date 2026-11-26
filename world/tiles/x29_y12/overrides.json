@@ -1,0 +1,124 @@
+{
+  "zone": "bhaktapur-core",
+  "buildings": {
+    "a2315383906": {
+      "remove": true
+    },
+    "a2315366834": {
+      "remove": true
+    },
+    "a2315366832": {
+      "remove": true
+    },
+    "a2315475772": {
+      "remove": true
+    },
+    "a2315383936": {
+      "remove": true
+    },
+    "a2315802660": {
+      "remove": true
+    },
+    "a2315802658": {
+      "remove": true
+    },
+    "a2315802656": {
+      "remove": true
+    },
+    "a2315802654": {
+      "remove": true
+    },
+    "a2315794482": {
+      "remove": true
+    },
+    "a2315383896": {
+      "remove": true
+    },
+    "a170940682": {
+      "height": 30,
+      "roof": "pitched",
+      "style": "temple_brick",
+      "name": "Nyatapola Temple"
+    },
+    "a371493456": {
+      "levels": 3,
+      "roof": "pitched",
+      "style": "temple_brick",
+      "name": "Bhairabnath Temple"
+    },
+    "a371501588": {
+      "levels": 4,
+      "roof": "flat",
+      "style": "temple_brick",
+      "name": "Shilu Mahadev (Fasidega)"
+    },
+    "a422165168": {
+      "levels": 3,
+      "roof": "flat",
+      "style": "temple_brick",
+      "name": "Siddhi Laxmi Temple"
+    },
+    "a422165170": {
+      "levels": 4,
+      "roof": "flat",
+      "style": "temple_brick",
+      "name": "Vatsala Shikhara"
+    },
+    "a991265490": {
+      "levels": 2,
+      "roof": "pitched",
+      "style": "temple_brick",
+      "name": "Chyasing Mandap"
+    },
+    "a394245144": {
+      "levels": 2,
+      "roof": "flat",
+      "style": "temple_brick",
+      "name": "Krishna Temple"
+    },
+    "a422161404": {
+      "levels": 2,
+      "roof": "flat",
+      "style": "temple_brick"
+    },
+    "a422161406": {
+      "levels": 2,
+      "roof": "flat",
+      "style": "temple_brick",
+      "name": "Kedarnath Temple"
+    },
+    "a371493652": {
+      "levels": 3,
+      "roof": "pitched",
+      "style": "newari_brick",
+      "name": "Ta Dhi Chhen"
+    },
+    "a2318787152": {
+      "levels": 3,
+      "roof": "pitched",
+      "style": "newari_brick"
+    },
+    "a37924277": {
+      "levels": 3,
+      "roof": "pitched",
+      "style": "newari_brick"
+    },
+    "a479959258": {
+      "levels": 1,
+      "roof": "flat",
+      "style": "tin_shed",
+      "name": "Ajima Open Market"
+    },
+    "a36836707": {
+      "levels": 3,
+      "roof": "flat",
+      "style": "temple_brick"
+    },
+    "a2318787176": {
+      "levels": 3,
+      "roof": "pitched",
+      "style": "temple_brick"
+    }
+  },
+  "notes": "Eleven footprints drawn across the pedestrian lanes at the east edge are removed. Monument footprints get storey counts instead of their plinth heights."
+}
