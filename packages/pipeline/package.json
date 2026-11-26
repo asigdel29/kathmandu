@@ -2,7 +2,7 @@
   "name": "@ktm/pipeline", "version": "0.1.0", "private": true, "type": "module",
   "dependencies": {
     "@ktm/geo": "workspace:*", "@ktm/schema": "workspace:*",
-    "@gltf-transform/core": "4.5.1", "@gltf-transform/functions": "4.5.1",
+    "@gltf-transform/core": "4.5.1", "@gltf-transform/extensions": "4.5.1", "@gltf-transform/functions": "4.5.1",
     "earcut": "3.2.4", "polygon-clipping": "0.15.7", "flatbush": "4.8.0", "pngjs": "7.0.0"
   },
   "devDependencies": { "@playwright/test": "^1.65.1", "@types/pngjs": "^6.0.5" }
