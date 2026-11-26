@@ -1,0 +1,7 @@
+{ "circles": [
+  { "id": "old-core",       "lon": 85.3085, "lat": 27.7055, "radiusM": 1100 },
+  { "id": "patan-core",     "lon": 85.3251, "lat": 27.6727, "radiusM": 650 },
+  { "id": "bhaktapur-core", "lon": 85.4280, "lat": 27.6715, "radiusM": 900 },
+  { "id": "kirtipur-core",  "lon": 85.2778, "lat": 27.6788, "radiusM": 450 },
+  { "id": "airport",        "lon": 85.3591, "lat": 27.6966, "radiusM": 1200 }
+], "hillsAboveM": 1500 }

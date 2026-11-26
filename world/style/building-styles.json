@@ -1,0 +1,16 @@
+{
+  "styles": ["newari_brick", "rcc_plaster_white", "rcc_plaster_pastel", "rcc_unfinished", "commercial_glass", "tin_shed", "temple_brick", "institutional"],
+  "levelHeightM": 3.1, "parapetM": 0.6,
+  "defaultLevels": { "old-core": 4, "patan-core": 3, "bhaktapur-core": 3, "kirtipur-core": 3, "commercial": 5, "suburb": 3, "hills": 2, "industrial": 1, "airport": 2 },
+  "mix": {
+    "old-core":       { "newari_brick": 0.80, "rcc_plaster_pastel": 0.20 },
+    "patan-core":     { "newari_brick": 0.75, "rcc_plaster_pastel": 0.25 },
+    "bhaktapur-core": { "newari_brick": 0.90, "rcc_plaster_pastel": 0.10 },
+    "kirtipur-core":  { "newari_brick": 0.70, "rcc_unfinished": 0.30 },
+    "commercial":     { "rcc_plaster_white": 0.50, "commercial_glass": 0.30, "rcc_unfinished": 0.20 },
+    "suburb":         { "rcc_plaster_pastel": 0.45, "rcc_plaster_white": 0.35, "rcc_unfinished": 0.15, "tin_shed": 0.05 },
+    "hills":          { "rcc_unfinished": 0.40, "tin_shed": 0.30, "newari_brick": 0.30 },
+    "industrial":     { "tin_shed": 0.80, "rcc_unfinished": 0.20 },
+    "airport":        { "institutional": 0.70, "rcc_plaster_white": 0.30 }
+  }
+}

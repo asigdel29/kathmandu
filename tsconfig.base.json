@@ -10,7 +10,8 @@
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "resolveJsonModule": true
   },
   "include": ["packages/**/*.ts", "apps/**/*.ts", "vitest.config.ts"]
 }
