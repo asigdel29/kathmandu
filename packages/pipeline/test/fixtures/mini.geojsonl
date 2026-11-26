@@ -1,0 +1,3 @@
+{"type":"Feature","id":"a1","geometry":{"type":"Polygon","coordinates":[[[85.30695,27.70425],[85.30705,27.70425],[85.30705,27.70435],[85.30695,27.70435],[85.30695,27.70425]]]},"properties":{"building":"yes","building:levels":"3","name":"Test House"}}
+{"type":"Feature","id":"w2","geometry":{"type":"LineString","coordinates":[[85.3105,27.7043],[85.3125,27.7043]]},"properties":{"highway":"residential","name":"Test Marg"}}
+{"type":"Feature","id":"n3","geometry":{"type":"Point","coordinates":[85.308,27.704]},"properties":{"place":"neighbourhood","name":"Basantapur"}}
