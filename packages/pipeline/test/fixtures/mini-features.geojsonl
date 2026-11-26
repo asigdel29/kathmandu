@@ -1,0 +1,2 @@
+{"id":"w100","kind":"building","geometry":{"type":"Polygon","coordinates":[[[100,100],[120,100],[120,115],[100,115],[100,100]]]},"properties":{"building":"yes","building:levels":"3","poi":false}}
+{"id":"w200","kind":"road","geometry":{"type":"LineString","coordinates":[[300,400],[400,400]]},"properties":{"highway":"primary","name":"Test Marg","borderStart":false,"borderEnd":false}}

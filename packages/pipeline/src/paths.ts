@@ -1,5 +1,7 @@
 import { resolve } from 'node:path';
-export const ROOT = resolve(import.meta.dir, '../../..');
+import { fileURLToPath } from 'node:url';
+/** Repository root. Resolved from the module URL so it works under Bun and under Node (vitest). */
+export const ROOT = resolve(fileURLToPath(new URL('.', import.meta.url)), '../../..');
 export const PATHS = {
   root: ROOT,
   data: `${ROOT}/data`,
