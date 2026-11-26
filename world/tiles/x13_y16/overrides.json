@@ -1,0 +1,21 @@
+{
+  "zone": "suburb",
+  "defaultLevels": 4,
+  "buildings": {
+    "a453038740": { "remove": true },
+    "a1807284464": { "remove": true },
+    "a1808124326": { "remove": true },
+    "a1808344488": { "remove": true },
+    "a443204122": { "levels": 2, "roof": "pitched", "style": "temple_brick" },
+    "a1094815350": { "levels": 2, "roof": "pitched", "style": "temple_brick" },
+    "a411205420": { "levels": 1, "roof": "flat", "style": "tin_shed" },
+    "a411205382": { "levels": 2, "roof": "flat", "style": "rcc_plaster_white" },
+    "a411205394": { "levels": 1, "roof": "flat", "style": "tin_shed" },
+    "a372247224": { "roof": "pitched" },
+    "a372247226": { "roof": "pitched" },
+    "a372247228": { "roof": "pitched" },
+    "a405966210": { "levels": 1, "roof": "pitched", "style": "tin_shed" }
+  },
+  "roads": {},
+  "notes": "Kalimati: dense mid-rise RCC around the Kalimati fruit and vegetable market, Ganeshman Singh Path and the Bishnumati bridges. Default four storeys; the market hall, the court and the slaughterhouse become low sheds; the two Hindu shrines get temple brick; one footprint drawn across a market lane and three sub-5 m2 slivers are removed."
+}
