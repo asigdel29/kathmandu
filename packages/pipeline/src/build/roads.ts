@@ -1,3 +1,4 @@
+import { resamplePolyline } from '../geom/resample.ts';
 import { MeshBuilder, type V3 } from '../gltf/mesh.ts';
 export type XZ = [number, number];
 export interface RoadSpec { width: number; lanes: number; speed: number; material: 'asphalt' | 'unpaved' | 'path'; vehicle: boolean; lights: boolean }
@@ -14,6 +15,17 @@ export function roadSpec(cls: string, surface?: string): RoadSpec {
   const s = ROAD_SPEC[cls] ?? ROAD_SPEC.unclassified!;
   const unpaved = surface && /unpaved|dirt|gravel|ground|earth|compacted|fine_gravel|mud|sand/.test(surface);
   return unpaved && s.material === 'asphalt' ? { ...s, material: 'unpaved' } : s;
+}
+
+/** Height of the ribbon above the (flattened) terrain surface, m. */
+export const ROAD_LIFT = 0.08;
+/** Max spacing of terrain samples along a road centreline, m. */
+export const ROAD_SAMPLE_M = 5;
+
+/** Centreline resampled every ROAD_SAMPLE_M (original vertices kept) with hAt at each point. */
+export function sampleRoad(pts: XZ[], hAt: (x: number, z: number) => number): { pts: XZ[]; heights: number[] } {
+  const out = resamplePolyline(pts, ROAD_SAMPLE_M);
+  return { pts: out, heights: out.map(([x, z]) => hAt(x, z)) };
 }
 
 export const navNodeId = (wx: number, wz: number): string => `n_${Math.round(wx * 100)}_${Math.round(wz * 100)}`;

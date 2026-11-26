@@ -1,15 +1,17 @@
 import { createHash } from 'node:crypto';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import Flatbush from 'flatbush';
 import { BASE_ELEVATION_M, HEIGHTMAP_N, PIPELINE_VERSION, TILE_SIZE_M, hash01, heightAt, localToLonLat, lonLatToLocal, tileOrigin } from '@ktm/geo';
 import { Hero, Nav, Overrides, PropsFile, TileMeta, type Prop } from '@ktm/schema';
+import { resamplePolyline } from '../geom/resample.ts';
 import { MeshBuilder } from '../gltf/mesh.ts';
 import { writeGlb } from '../gltf/write.ts';
 import { PATHS } from '../paths.ts';
 import { defaultLevels, pickStyle, styleIndex, zoneAt, type Zone } from '../style/style.ts';
 import { buildingHeight, extrudeBuilding } from './buildings.ts';
+import { flattenUnderRoads, meshHeightAt, type RoadLine } from './flatten.ts';
 import { alongPolyline, pointInRing, roofProps, treesInRing, type XZ } from './props.ts';
-import { navNodeId, ribbon, roadSpec } from './roads.ts';
+import { ROAD_LIFT, ROAD_SAMPLE_M, navNodeId, ribbon, roadSpec, sampleRoad, type RoadSpec } from './roads.ts';
 import { LANDCOVER, terrainMesh, type GreenArea } from './terrain.ts';
 import { waterMesh } from './water.ts';
 
@@ -109,6 +111,26 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
   const propsExtra = PropsFile.parse(JSON.parse(propsExtraText));
   const heroes = heroFootprints(worldDir, origin);
   const features: Feature[] = new TextDecoder().decode(featuresBytes).split('\n').filter((l) => l.trim()).map((l) => JSON.parse(l) as Feature);
+  const roads = features.filter((f) => f.kind === 'road' && f.geometry.type === 'LineString');
+  const roadList: { f: Feature; pts: XZ[]; spec: RoadSpec; sampled: XZ[] }[] = [];
+  const roadLines: RoadLine[] = [];
+  for (const f of roads) {
+    const ov = overrides.roads[f.id];
+    if (ov?.remove) continue;
+    const pts = f.geometry.coordinates as XZ[];
+    if (pts.length < 2) continue;
+    const t = f.properties;
+    const base = roadSpec(String(t.highway), ov?.surface ?? (typeof t.surface === 'string' ? t.surface : undefined));
+    const spec = { ...base, width: ov?.width ?? base.width, lanes: ov?.lanes ?? base.lanes };
+    if (spec.vehicle) {
+      // Road heights come from the original terrain; the ground under vehicle roads is then
+      // flattened to them. Border samples never move, so tile seams stay identical.
+      const s = sampleRoad(pts, (x, z) => meshHeightAt(hm, x, z));
+      roadLines.push({ ...s, width: spec.width });
+      roadList.push({ f, pts, spec, sampled: s.pts });
+    } else roadList.push({ f, pts, spec, sampled: resamplePolyline(pts, ROAD_SAMPLE_M) });
+  }
+  const flat = flattenUnderRoads(hm, roadLines, ROAD_LIFT);
 
   // 2. inputs hash
   const hasher = createHash('sha256');
@@ -122,7 +144,8 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
   const center = localToLonLat(origin.x + TILE_SIZE_M / 2, origin.z + TILE_SIZE_M / 2);
   const zone: Zone = overrides.zone ?? zoneAt(center.lon, center.lat, sumH / hm.length);
   const baseY = minH - BASE_ELEVATION_M;
-  const yAt = (x: number, z: number): number => heightAt(hm, x, z) - BASE_ELEVATION_M;
+  // Everything placed on the ground follows the flattened surface the terrain mesh renders.
+  const yAt = (x: number, z: number): number => meshHeightAt(flat, x, z) - BASE_ELEVATION_M;
 
   // 4-5. greens and terrain
   const greens: (GreenArea & { id: string; trees: number })[] = [];
@@ -132,10 +155,9 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
     for (const rings of polys(f.geometry)) if (rings[0] && rings[0].length >= 3) greens.push({ ring: rings[0], color: LANDCOVER[g.key]!, id: f.id, trees: g.trees });
   }
   mkdirSync(dir, { recursive: true });
-  const terrain = await writeGlb(`${dir}/terrain.glb`, [{ name: 'terrain', data: terrainMesh(hm, greens), baseColor: [1, 1, 1, 1], withColor: true }]);
+  const terrain = await writeGlb(`${dir}/terrain.glb`, [{ name: 'terrain', data: terrainMesh(flat, greens), baseColor: [1, 1, 1, 1], withColor: true }]);
 
   // 6. commercial-road index
-  const roads = features.filter((f) => f.kind === 'road' && f.geometry.type === 'LineString');
   const segs: [number, number, number, number][] = [];
   for (const r of roads) {
     if (!COMMERCIAL_ROADS.has(String(r.properties.highway))) continue;
@@ -178,15 +200,9 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
   const edges: NavEdge[] = [];
   const seamStubs: string[] = [];
   let roadCount = 0;
-  for (const f of roads) {
-    const ov = overrides.roads[f.id];
-    if (ov?.remove) continue;
-    const pts = f.geometry.coordinates as XZ[];
-    if (pts.length < 2) continue;
+  for (const { f, pts, spec, sampled } of roadList) {
     const t = f.properties;
-    const base = roadSpec(String(t.highway), ov?.surface ?? (typeof t.surface === 'string' ? t.surface : undefined));
-    const spec = { ...base, width: ov?.width ?? base.width, lanes: ov?.lanes ?? base.lanes };
-    ribbon(pts, spec.width, yAt, mats[spec.material], 0.08);
+    ribbon(sampled, spec.width, yAt, mats[spec.material], ROAD_LIFT);
     roadCount++;
     if (spec.vehicle) {
       const ids: { nid: string; node: NavNode }[] = [];
@@ -249,7 +265,7 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
   const waterOut = waterData.indices.length
     ? await writeGlb(`${dir}/water.glb`, [{ name: 'water', data: waterData, baseColor: [0.25, 0.38, 0.42, 1], roughness: 0.2 }])
     : { bytes: 0, triangles: 0 };
-  copyFileSync(terrainPath, `${dir}/height.f32`);
+  writeFileSync(`${dir}/height.f32`, new Uint8Array(flat.buffer, flat.byteOffset, flat.byteLength));
 
   const size = (f: string) => readFileSync(`${dir}/${f}`).byteLength;
   const bytes: Record<string, number> = {
