@@ -1,11 +1,19 @@
 import type { TileId } from '@ktm/geo';
+import { VehicleType } from '@ktm/schema';
 export type View = 'follow' | 'iso' | 'street';
-export interface Config { worldBase: string; tile: TileId; spawn?: { x: number; z: number }; view: View; timeOfDay: number; freeze: boolean }
+export interface Config {
+  worldBase: string; tile: TileId; spawn?: { x: number; z: number }; view: View; timeOfDay: number; freeze: boolean;
+  /** Start already driving a vehicle of this type. */
+  vehicle?: VehicleType;
+  /** Hold the throttle for a few seconds from ready (scripted checks). */
+  autodrive: boolean;
+}
 
 export function readConfig(search: string, worldBase: string): Config {
   const q = new URLSearchParams(search);
   const [hh = '16', mm = '30'] = (q.get('t') ?? '16:30').split(':');
   const view = q.get('view');
+  const vehicle = VehicleType.safeParse(q.get('vehicle'));
   return {
     worldBase,
     tile: (q.get('tile') as TileId | null) ?? 'x14_y17',
@@ -13,5 +21,7 @@ export function readConfig(search: string, worldBase: string): Config {
     view: view === 'iso' || view === 'street' ? view : 'follow',
     timeOfDay: Number(hh) + Number(mm) / 60,
     freeze: q.get('freeze') === '1',
+    vehicle: vehicle.success ? vehicle.data : undefined,
+    autodrive: q.get('autodrive') === '1',
   };
 }

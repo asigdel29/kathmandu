@@ -33,6 +33,13 @@ export class Character {
 
   get isGrounded(): boolean { return this.grounded; }
 
+  /** Inactive while driving: no collider (the vehicle cannot hit its own driver) and no mesh. */
+  setActive(active: boolean): void {
+    this.collider.setEnabled(active);
+    this.mesh.visible = active;
+    this.speed = 0; this.velY = 0;
+  }
+
   update(dt: number, input: Input, camera: THREE.Camera): void {
     const dir = input.moveVector(camera);
     const target = dir.lengthSq() > 0 ? (input.run ? 5.5 : 2.2) : 0;
