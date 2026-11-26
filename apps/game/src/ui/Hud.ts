@@ -8,13 +8,16 @@ export function formatClock(timeOfDay: number): string {
   return `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
 }
 
+export function formatSpeed(kmh: number): string { return `${Math.round(Math.abs(kmh))} km/h`; }
+
 export class Hud {
   private fps = 60;
   private acc = UPDATE_INTERVAL_S;
 
   constructor(private el: HTMLElement) {}
 
-  update(dt: number, pos: THREE.Vector3, timeOfDay: number): void {
+  /** speedKmh is shown while driving; leave it undefined on foot. */
+  update(dt: number, pos: THREE.Vector3, timeOfDay: number, paused = false, speedKmh?: number): void {
     if (dt > 0) this.fps += (1 / dt - this.fps) * Math.min(1, dt * 2);
     this.acc += dt;
     if (this.acc < UPDATE_INTERVAL_S) return;
@@ -22,6 +25,7 @@ export class Hud {
     let tile = '-';
     try { const { i, j } = tileIndexAt(pos.x, pos.z); tile = tileId(i, j); } catch { /* outside the grid */ }
     const { lon, lat } = localToLonLat(pos.x, pos.z);
-    this.el.textContent = `${tile}  ${pos.x.toFixed(1)},${pos.z.toFixed(1)}  ${lon.toFixed(5)},${lat.toFixed(5)}  ${Math.round(this.fps)} fps  t=${formatClock(timeOfDay)}`;
+    const info = `${tile}  ${pos.x.toFixed(1)},${pos.z.toFixed(1)}  ${lon.toFixed(5)},${lat.toFixed(5)}  ${Math.round(this.fps)} fps  t=${formatClock(timeOfDay)}${paused ? ' (paused)' : ''}`;
+    this.el.textContent = speedKmh === undefined ? info : `${formatSpeed(speedKmh)}  ${info}`;
   }
 }

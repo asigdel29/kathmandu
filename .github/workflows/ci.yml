@@ -16,6 +16,8 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run typecheck
       - run: bun run test
+      - run: bunx playwright install --with-deps chromium
+      - run: bun run e2e
       - run: bun audit --audit-level=high
   tiles:
     name: ci / tiles
