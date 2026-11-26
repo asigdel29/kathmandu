@@ -1,0 +1,33 @@
+{
+  "zone": "suburb",
+  "defaultLevels": 4,
+  "buildings": {
+    "a1286693404": { "remove": true },
+    "a2189266922": { "remove": true },
+    "a1835069104": { "levels": 2, "roof": "pitched", "style": "temple_brick", "name": "Kalyani Mandir" },
+    "a384105210": { "levels": 2, "roof": "pitched", "style": "institutional", "name": "Administrative Block" },
+    "a384105126": { "style": "institutional" },
+    "a384105178": { "style": "institutional" },
+    "a438716810": { "style": "institutional", "name": "Academic Block" },
+    "a446185062": { "style": "institutional", "name": "Baneswor Campus" },
+    "a446185064": { "style": "institutional", "name": "Baneswor Campus" },
+    "a446185066": { "style": "institutional", "name": "Baneswor Campus" },
+    "a446185068": { "style": "institutional", "name": "Baneswor Campus" },
+    "a361543922": { "roof": "pitched" },
+    "a446179686": { "roof": "pitched" },
+    "a446731000": { "roof": "pitched" },
+    "a446731008": { "roof": "pitched" },
+    "a446979948": { "roof": "pitched" },
+    "a601243530": { "roof": "pitched" },
+    "a601243540": { "roof": "pitched" },
+    "a1286618656": { "roof": "pitched" },
+    "a1294495430": { "roof": "pitched" },
+    "a1294308750": { "style": "commercial_glass", "name": "TechYatra Labs" },
+    "a1294308752": { "style": "commercial_glass", "name": "NAXA (Block 2)" },
+    "a1294308754": { "style": "commercial_glass", "name": "NAXA (Block 1)" },
+    "a1286618414": { "style": "tin_shed", "levels": 1, "name": "Bumper Welding Workshop" },
+    "a1295172854": { "style": "tin_shed", "levels": 1, "name": "Subhakamana Seat Workshop" }
+  },
+  "roads": {},
+  "notes": "Zone is suburb, not airport: the tile centre falls inside the airport circle, but the tile is a dense residential and school quarter beside the Ring Road. Default four storeys for RCC infill."
+}
