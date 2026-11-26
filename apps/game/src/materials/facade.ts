@@ -12,6 +12,7 @@ const STYLE_COLORS = [
   '#3b6ea5', // tin_shed
   '#7a2e22', // temple_brick
   '#d8cdb8', // institutional
+  '#6b3b2e', // tile_roof (pitched roof slopes)
 ];
 
 const FLOOR_PITCH = 3.1;
@@ -62,7 +63,8 @@ export function createFacadeMaterial(night: UniformNode<'float'>): THREE.MeshSta
     .add(floor(v.div(FLOOR_PITCH)).mul(131))
     .add(tile.x.mul(7919))
     .add(tile.y.mul(104729));
-  const lit = step(0.6, hash(seed)).mul(windowMask);
+  // hash() converts its seed to uint; negative world coordinates would all collapse to one value.
+  const lit = step(0.6, hash(seed.abs())).mul(windowMask);
 
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.colorNode = colorNode;

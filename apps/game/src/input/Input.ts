@@ -1,6 +1,6 @@
 import * as THREE from 'three/webgpu';
 
-const TRACKED = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'Space', 'KeyE']);
+const TRACKED = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'Space', 'KeyE', 'KeyP']);
 
 export interface DriveAxes { throttle: number; steer: number; handbrake: boolean }
 
@@ -36,6 +36,7 @@ export class Input {
   get run(): boolean { return this.down.has('ShiftLeft'); }
   get jumpPressed(): boolean { return this.pressed.has('Space'); }
   get interactPressed(): boolean { return this.pressed.has('KeyE'); }
+  get pausePressed(): boolean { return this.pressed.has('KeyP'); }
   get pointerLocked(): boolean { return this.locked; }
 
   /** Camera-relative unit vector on the XZ plane; zero when no movement key is held. */
@@ -67,5 +68,6 @@ export class Input {
     this.lookDelta.x = 0;
     this.lookDelta.y = 0;
     if (!keepPresses) this.pressed.clear();
+    else this.pressed.delete('KeyP'); // pause is read every frame, not by a physics step
   }
 }

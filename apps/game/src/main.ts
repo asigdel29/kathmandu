@@ -12,6 +12,7 @@ import { createRenderer } from './renderer.ts';
 import { Hud } from './ui/Hud.ts';
 import { fallbackSpawns, fixedSteps, nearestWithin, propSpawns, yawTowards } from './vehicles/Garage.ts';
 import { msToKmh, Vehicle } from './vehicles/Vehicle.ts';
+import { Clock, nightAmount } from './world/Clock.ts';
 import { loadManifest } from './world/manifest.ts';
 import { PropsRenderer } from './world/PropsRenderer.ts';
 import { Sky } from './world/Sky.ts';
@@ -45,8 +46,9 @@ async function main(): Promise<void> {
 
   const sky = new Sky(scene, config.timeOfDay);
   const physics = await Physics.create();
+  const clock = new Clock(config.timeOfDay, { frozen: config.freeze });
   const night = createNightUniform();
-  night.value = sky.night();
+  night.value = nightAmount(clock.time);
   const facade = createFacadeMaterial(night);
   const loader = new TileLoader(config.worldBase, manifest, facade);
   const props = new PropsRenderer(scene, night);
@@ -120,7 +122,7 @@ async function main(): Promise<void> {
   for (const v of vehicles) v.syncVisual(STEP);
   debug.vehicles = vehicles.length;
   debug.driving = config.vehicle ?? null;
-  window.__ktm = { physics, streamer, player, sky, scene, vehicles };
+  window.__ktm = { physics, streamer, player, sky, scene, camera, clock, night, vehicles };
   // Warm-up: render until the frame time settles (pipeline compiles and temporal history allocation happen in
   // the first frames) before reporting ready, so the first driven frames are not one long stall.
   follow.update(0, config.vehicle ? vehicles[vehicles.length - 1]!.group.position : player.position, input, lookAt, yawTowards(start, lookAt));
@@ -139,7 +141,8 @@ async function main(): Promise<void> {
   let last = performance.now();
   const focus = new THREE.Vector3();
   const frame = (now: number) => {
-    const frameDt = (now - last) / 1000;
+    // Physics runs in fixed steps; the clock follows wall time so slow frames do not slow the day.
+    const frameDt = Math.max(0, (now - last) / 1000);
     last = now;
     const dt = Math.min(frameDt, 0.05);
     let steps = 0;
@@ -169,11 +172,15 @@ async function main(): Promise<void> {
     const car: Vehicle | null = driving;
     if (car) focus.copy(car.group.position); else focus.copy(player.position);
     follow.update(dt, focus, input, lookAt, car ? car.yaw : 0);
+    if (input.pausePressed) clock.togglePause();
+    clock.advance(frameDt);
+    sky.setTime(clock.time);
+    night.value = nightAmount(clock.time);
     sky.update(focus);
     void streamer.update(focus);
     const speed = car ? Math.abs(car.speedMs) : 0;
     debug.speed = speed; debug.speedKmh = msToKmh(speed); debug.driving = car ? car.type : null; debug.vehicles = vehicles.length;
-    hud.update(dt, focus, config.timeOfDay, car ? msToKmh(car.speedMs) : undefined);
+    hud.update(dt, focus, clock.time, clock.paused, car ? msToKmh(car.speedMs) : undefined);
     input.endFrame(!config.freeze && steps === 0);
     post.render();
   };
