@@ -1,3 +1,4 @@
+import { resamplePolyline } from '../geom/resample.ts';
 import { MeshBuilder, type V3 } from '../gltf/mesh.ts';
 export type XZ = [number, number];
 export interface RoadSpec { width: number; lanes: number; speed: number; material: 'asphalt' | 'unpaved' | 'path'; vehicle: boolean; lights: boolean }
@@ -16,25 +17,40 @@ export function roadSpec(cls: string, surface?: string): RoadSpec {
   return unpaved && s.material === 'asphalt' ? { ...s, material: 'unpaved' } : s;
 }
 
+/** Height of the ribbon above the (flattened) terrain surface, m. */
+export const ROAD_LIFT = 0.08;
+/** Max spacing of terrain samples along a road centreline, m. */
+export const ROAD_SAMPLE_M = 5;
+
+/** Centreline resampled every ROAD_SAMPLE_M (original vertices kept) with hAt at each point. */
+export function sampleRoad(pts: XZ[], hAt: (x: number, z: number) => number): { pts: XZ[]; heights: number[] } {
+  const out = resamplePolyline(pts, ROAD_SAMPLE_M);
+  return { pts: out, heights: out.map(([x, z]) => hAt(x, z)) };
+}
+
 export const navNodeId = (wx: number, wz: number): string => `n_${Math.round(wx * 100)}_${Math.round(wz * 100)}`;
 
-/** Flat ribbon along pts (tile-local), lifted above terrain. u = meters along, v in {0,1}. */
+/**
+ * Ribbon along pts (tile-local) draped over the terrain: left edge, centre and right edge are each
+ * sampled with yAt at their own position and lifted by `lift`. u = meters along, v in {0, 0.5, 1}.
+ */
 export function ribbon(pts: XZ[], width: number, yAt: (x: number, z: number) => number, m: MeshBuilder, lift: number, style = 0): void {
   if (pts.length < 2) return;
-  const half = width / 2;
-  const L: number[] = [], Rr: number[] = [];
+  const half = width / 2, n: V3 = [0, 1, 0];
+  const L: number[] = [], C: number[] = [], Rr: number[] = [];
+  const at = (x: number, z: number, u: number, v: number): number => m.vertex([x, yAt(x, z) + lift, z], n, [u, v], style);
   let u = 0;
   for (let i = 0; i < pts.length; i++) {
     const p = pts[i]!;
     const a = pts[Math.max(i - 1, 0)]!, b = pts[Math.min(i + 1, pts.length - 1)]!;
     let dx = b[0] - a[0], dz = b[1] - a[1]; const len = Math.hypot(dx, dz) || 1; dx /= len; dz /= len;
     if (i > 0) u += Math.hypot(p[0] - pts[i - 1]![0], p[1] - pts[i - 1]![1]);
-    const y = yAt(p[0], p[1]) + lift;
-    const n: V3 = [0, 1, 0];
-    L.push(m.vertex([p[0] - dz * half, y, p[1] + dx * half], n, [u, 0], style));
-    Rr.push(m.vertex([p[0] + dz * half, y, p[1] - dx * half], n, [u, 1], style));
+    L.push(at(p[0] - dz * half, p[1] + dx * half, u, 0));
+    C.push(at(p[0], p[1], u, 0.5));
+    Rr.push(at(p[0] + dz * half, p[1] - dx * half, u, 1));
   }
   for (let i = 0; i + 1 < pts.length; i++) {
-    m.triUp(L[i]!, Rr[i]!, Rr[i + 1]!); m.triUp(L[i]!, Rr[i + 1]!, L[i + 1]!);
+    m.triUp(L[i]!, C[i]!, C[i + 1]!); m.triUp(L[i]!, C[i + 1]!, L[i + 1]!);
+    m.triUp(C[i]!, Rr[i]!, Rr[i + 1]!); m.triUp(C[i]!, Rr[i + 1]!, C[i + 1]!);
   }
 }
