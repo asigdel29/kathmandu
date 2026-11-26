@@ -35,6 +35,7 @@ export const Prop = z.object({
   scale: z.number().positive().default(1),
 });
 export const PropsFile = z.object({ props: z.array(Prop) });
+export type PropsFile = z.infer<typeof PropsFile>;
 export type Prop = z.infer<typeof Prop>;
 
 export const NavNode = z.object({ id: z.string().regex(/^n_-?\d+_-?\d+$/), x: z.number(), y: z.number(), z: z.number(), border: z.boolean() });
