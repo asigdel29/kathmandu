@@ -26,24 +26,24 @@ function segDist([px, pz]: XZ, pts: XZ[]): number {
   return best;
 }
 
-async function asphaltCentreline(path: string): Promise<[number, number, number][]> {
+type P3 = [number, number, number];
+/** Asphalt ribbon vertices in world space: L, C, R per centreline sample. */
+async function asphaltRibbon(path: string): Promise<P3[]> {
   const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(path);
   const node = doc.getRoot().listNodes().find((n) => n.getMesh())!;
   const m = node.getWorldMatrix();
   const prim = node.getMesh()!.listPrimitives().find((p) => p.getMaterial()?.getName() === 'asphalt')!;
   const pos = prim.getAttribute('POSITION')!;
-  const v: [number, number, number][] = [];
+  const v: P3[] = [];
   for (let i = 0; i < pos.getCount(); i++) {
     const [x, y, z] = pos.getElement(i, [0, 0, 0]) as [number, number, number];
     v.push([m[0] * x + m[4] * y + m[8] * z + m[12], m[1] * x + m[5] * y + m[9] * z + m[13], m[2] * x + m[6] * y + m[10] * z + m[14]]);
   }
-  const mid: [number, number, number][] = [];
-  for (let i = 0; i + 1 < v.length; i += 2) { const a = v[i]!, b = v[i + 1]!; mid.push([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2]); }
-  return mid;
+  return v;
 }
 
 describe('roads on sloped terrain', () => {
-  let hm: Float32Array, flat: Float32Array, mid: [number, number, number][], nav: Nav;
+  let hm: Float32Array, flat: Float32Array, verts: P3[], mid: P3[], nav: Nav;
   beforeAll(async () => {
     const inp = fixtureInputs();
     hm = new Float32Array(N * N);
@@ -56,13 +56,19 @@ describe('roads on sloped terrain', () => {
     await buildTile('x14_y17', { ...inp, outDir: dir, quiet: true });
     const b = readFileSync(`${dir}/height.f32`);
     flat = new Float32Array(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
-    mid = await asphaltCentreline(`${dir}/roads.glb`);
+    verts = await asphaltRibbon(`${dir}/roads.glb`);
+    mid = verts.filter((_, i) => i % 3 === 1);
     nav = Nav.parse(JSON.parse(readFileSync(`${dir}/nav.json`, 'utf8')));
   });
 
   it('keeps the ribbon within lift + 0.1 m of the flattened terrain at every sample', () => {
     expect(mid.length).toBeGreaterThan(100);
     for (const [x, y, z] of mid) expect(Math.abs(y - (meshHeightAt(flat, x, z) - BASE_ELEVATION_M))).toBeLessThanOrEqual(ROAD_LIFT + 0.1);
+  });
+
+  it('drapes every ribbon vertex, edges included, within lift + 0.1 m of the flattened terrain', () => {
+    expect(verts.length).toBe(mid.length * 3);
+    for (const [x, y, z] of verts) expect(Math.abs(y - (meshHeightAt(flat, x, z) - BASE_ELEVATION_M))).toBeLessThanOrEqual(ROAD_LIFT + 0.1);
   });
 
   it('samples the centreline every 5 m and keeps the original vertices', () => {
