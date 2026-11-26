@@ -1,0 +1,63 @@
+name: publish
+on:
+  push:
+    branches: [main]
+    paths: ['world/**', 'packages/pipeline/**', 'packages/geo/**']
+  workflow_dispatch:
+    inputs:
+      all: { type: boolean, default: false, description: 'Rebuild and publish every content tile' }
+concurrency:
+  group: publish
+  cancel-in-progress: false
+jobs:
+  tiles:
+    runs-on: ubuntu-latest
+    env:
+      WORLD_BASE_URL: ${{ vars.WORLD_BASE_URL }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      WRANGLER: bunx wrangler@4.122.0
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: 1.4.4 }
+      - run: bun install --frozen-lockfile
+      - name: require world host and credentials
+        run: |
+          [ -n "$WORLD_BASE_URL" ] || { echo "::error::repository variable WORLD_BASE_URL is not set"; exit 1; }
+          [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ] || { echo "::error::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID secrets are not set"; exit 1; }
+      - id: plan
+        name: tiles and heroes to publish
+        run: |
+          BEFORE='${{ github.event.before }}'
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then BEFORE=$(git rev-parse HEAD~1); fi
+          if [ '${{ inputs.all }}' = 'true' ] || [ -n "$(git diff --name-only $BEFORE ${{ github.sha }} -- packages/)" ]; then
+            TILES=$(curl -fsS "${WORLD_BASE_URL}data/v1/partition-summary.json" | jq -r '.tiles | to_entries[] | select(.value.kind == "content") | .key' | sort | tr '\n' ' ')
+          else
+            TILES=$(git diff --name-only $BEFORE ${{ github.sha }} -- world/tiles/ | awk -F/ '{print $3}' | sort -u | tr '\n' ' ')
+          fi
+          HEROES=$(git diff --name-only --diff-filter=AM $BEFORE ${{ github.sha }} -- 'world/heroes/*/hero.json' | awk -F/ '{print $3}' | sort -u | tr '\n' ' ')
+          echo "tiles=$TILES" >> $GITHUB_OUTPUT
+          echo "heroes=$HEROES" >> $GITHUB_OUTPUT
+          echo "tiles: $(echo $TILES | wc -w); heroes: $HEROES"
+      - name: build, validate and upload tiles
+        if: steps.plan.outputs.tiles != ''
+        run: |
+          for t in ${{ steps.plan.outputs.tiles }}; do
+            bun run pipeline fetch-inputs $t && bun run pipeline build $t && bun run pipeline validate $t && bun run pipeline upload $t
+          done
+      - name: hero models are published
+        if: steps.plan.outputs.heroes != ''
+        run: |
+          for s in ${{ steps.plan.outputs.heroes }}; do
+            sha=$(jq -r '.model.sha256 // empty' world/heroes/$s/hero.json)
+            [ -n "$sha" ] || { echo "$s: no model yet"; continue; }
+            code=$(curl -s -o /dev/null -w '%{http_code}' -I "${WORLD_BASE_URL}heroes/$s/$sha/model.glb")
+            [ "$code" = "200" ] || { echo "::error::$s: ${WORLD_BASE_URL}heroes/$s/$sha/model.glb returned $code"; exit 1; }
+            echo "$s: model $sha published"
+          done
+      - name: manifest
+        run: |
+          bun run pipeline manifest --merge "${WORLD_BASE_URL}manifest.json"
+          bun run pipeline upload --manifest

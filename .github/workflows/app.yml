@@ -1,0 +1,28 @@
+name: app
+on:
+  push:
+    branches: [main]
+    paths: ['apps/**', 'packages/geo/**', 'packages/schema/**']
+  workflow_dispatch:
+concurrency:
+  group: app
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: 1.4.4 }
+      - run: bun install --frozen-lockfile
+      - name: build
+        env:
+          VITE_WORLD_BASE_URL: ${{ vars.WORLD_BASE_URL }}
+        run: |
+          [ -n "$VITE_WORLD_BASE_URL" ] || { echo "::error::repository variable WORLD_BASE_URL is not set"; exit 1; }
+          bun run build:app
+      - name: deploy to Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bunx wrangler@4.122.0 pages deploy apps/game/dist --project-name kathmandu --branch main
