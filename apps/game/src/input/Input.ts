@@ -2,8 +2,13 @@ import * as THREE from 'three/webgpu';
 
 const TRACKED = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'Space', 'KeyE']);
 
+export interface DriveAxes { throttle: number; steer: number; handbrake: boolean }
+
 export class Input {
   readonly lookDelta = { x: 0, y: 0 };
+  /** When set, driveAxes() holds full throttle regardless of the keys (scripted checks). */
+  autodrive = false;
+  private axes: DriveAxes = { throttle: 0, steer: 0, handbrake: false };
   private down = new Set<string>();
   private pressed = new Set<string>();
   private locked = false;
@@ -48,10 +53,19 @@ export class Input {
     return this.out.lengthSq() > 0 ? this.out.normalize() : this.out;
   }
 
-  /** Clear per-frame state: look deltas and one-shot presses. */
-  endFrame(): void {
+  /** Vehicle controls: W/S throttle (S brakes, then reverses), A/D steer (+ = left), Space handbrake. */
+  driveAxes(): DriveAxes {
+    const a = this.axes;
+    a.throttle = this.autodrive ? 1 : (this.down.has('KeyW') || this.down.has('ArrowUp') ? 1 : 0) - (this.down.has('KeyS') || this.down.has('ArrowDown') ? 1 : 0);
+    a.steer = (this.down.has('KeyA') || this.down.has('ArrowLeft') ? 1 : 0) - (this.down.has('KeyD') || this.down.has('ArrowRight') ? 1 : 0);
+    a.handbrake = !this.autodrive && this.down.has('Space');
+    return a;
+  }
+
+  /** Clear per-frame state: look deltas and one-shot presses. keepPresses carries the presses over when no physics step consumed them. */
+  endFrame(keepPresses = false): void {
     this.lookDelta.x = 0;
     this.lookDelta.y = 0;
-    this.pressed.clear();
+    if (!keepPresses) this.pressed.clear();
   }
 }
