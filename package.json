@@ -11,9 +11,11 @@
     "heroes": "bun packages/heroes/src/cli.ts",
     "dev": "bun --cwd apps/game vite --port 5173 --strictPort",
     "build:app": "bun --cwd apps/game vite build",
-    "preview": "bun --cwd apps/game vite preview --port 4173"
+    "preview": "bun --cwd apps/game vite preview --port 4173",
+    "e2e": "bun apps/game/e2e/fixture-world.ts && bunx playwright test -c apps/game/playwright.config.ts"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "@types/bun": "^1.4.4",
     "typescript": "^7.0.2",
     "vite": "^8.3.8",
