@@ -34,10 +34,10 @@ export interface DriveInput {
   handbrake: boolean;
 }
 
-interface WheelSpec { x: number; z: number; steer: boolean; drive: boolean; }
+export interface WheelSpec { x: number; z: number; steer: boolean; drive: boolean; }
 interface VisualWheel { ray: number; x: number; pivot: THREE.Group; spin: THREE.Group; }
 
-const COLORS: Record<VehicleType, number> = { taxi: 0xf2c14e, tempo: 0x3d7a4a, motorbike: 0x8b1e1e };
+export const VEHICLE_COLORS: Record<VehicleType, number> = { taxi: 0xf2c14e, tempo: 0x3d7a4a, motorbike: 0x8b1e1e };
 const STEER_RATE = 2.5; // rad/s toward the target angle
 const STOP_MS = 1; // below this forward speed S reverses instead of braking
 const BIKE_TRACK = 0.3;
@@ -123,7 +123,7 @@ export class Vehicle {
     content.position.y = this.rideHeight;
     this.leanPivot.add(content);
 
-    const bodyMat = new THREE.MeshStandardNodeMaterial({ color: COLORS[this.type], roughness: 0.6, metalness: 0.1 });
+    const bodyMat = new THREE.MeshStandardNodeMaterial({ color: VEHICLE_COLORS[this.type], roughness: 0.6, metalness: 0.1 });
     const wheelMat = new THREE.MeshStandardNodeMaterial({ color: 0x1b1b1b, roughness: 0.9 });
     const hubMat = new THREE.MeshStandardNodeMaterial({ color: 0x9a9a9a, roughness: 0.5, metalness: 0.4 });
     const bodyGeo = new THREE.BoxGeometry(t.width, t.height, t.length);
@@ -252,7 +252,7 @@ export class Vehicle {
   }
 }
 
-function wheelLayout(type: VehicleType, t: VehicleTuning): WheelSpec[] {
+export function wheelLayout(type: VehicleType, t: VehicleTuning): WheelSpec[] {
   const front = t.length / 2 - Math.max(0.35, t.wheelRadius * 1.6);
   const rear = -front;
   const side = (track: number) => track / 2;
