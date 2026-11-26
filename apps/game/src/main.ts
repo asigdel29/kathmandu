@@ -8,6 +8,7 @@ import { Physics } from './physics/Physics.ts';
 import { Character } from './player/Character.ts';
 import { createRenderer } from './renderer.ts';
 import { Hud } from './ui/Hud.ts';
+import { Clock, nightAmount } from './world/Clock.ts';
 import { loadManifest } from './world/manifest.ts';
 import { PropsRenderer } from './world/PropsRenderer.ts';
 import { Sky } from './world/Sky.ts';
@@ -28,8 +29,9 @@ async function main(): Promise<void> {
 
   const sky = new Sky(scene, config.timeOfDay);
   const physics = await Physics.create();
+  const clock = new Clock(config.timeOfDay, { frozen: config.freeze });
   const night = createNightUniform();
-  night.value = sky.night();
+  night.value = nightAmount(clock.time);
   const facade = createFacadeMaterial(night);
   const loader = new TileLoader(config.worldBase, manifest, facade);
   const props = new PropsRenderer(scene, night);
@@ -67,18 +69,24 @@ async function main(): Promise<void> {
   const ground = streamer.heightAt(start.x, start.z);
   physics.step(1 / 60); // registers the new colliders with scene queries
   player.teleport(start.x, (ground ?? BASE_ELEVATION_M) - BASE_ELEVATION_M + 1.2, start.z);
-  window.__ktm = { physics, streamer, player, sky, scene };
+  window.__ktm = { physics, streamer, player, sky, scene, camera, clock, night };
   window.__ktmReady = true;
 
   let last = performance.now();
   const frame = (now: number) => {
-    const dt = Math.min((now - last) / 1000, 0.05);
+    // Simulation steps are clamped; the clock follows wall time so slow frames do not slow the day.
+    const elapsed = Math.max(0, (now - last) / 1000);
+    const dt = Math.min(elapsed, 0.05);
     last = now;
     if (!config.freeze) { player.update(dt, input, camera); physics.step(dt); }
     follow.update(dt, player.position, input, lookAt);
+    if (input.pausePressed) clock.togglePause();
+    clock.advance(elapsed);
+    sky.setTime(clock.time);
+    night.value = nightAmount(clock.time);
     sky.update(player.position);
     void streamer.update(player.position);
-    hud.update(dt, player.position, config.timeOfDay);
+    hud.update(dt, player.position, clock.time, clock.paused);
     input.endFrame();
     post.render();
   };
