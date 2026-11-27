@@ -1,6 +1,8 @@
 import * as THREE from 'three/webgpu';
 
-const TRACKED = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'Space', 'KeyE', 'KeyP']);
+const TRACKED = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'Space', 'KeyE', 'KeyP', 'KeyH', 'KeyN']);
+/** One-shot keys read every frame rather than by a physics step. */
+const PER_FRAME = ['KeyP', 'KeyH', 'KeyN'];
 
 export interface DriveAxes { throttle: number; steer: number; handbrake: boolean }
 
@@ -37,6 +39,9 @@ export class Input {
   get jumpPressed(): boolean { return this.pressed.has('Space'); }
   get interactPressed(): boolean { return this.pressed.has('KeyE'); }
   get pausePressed(): boolean { return this.pressed.has('KeyP'); }
+  get hornPressed(): boolean { return this.pressed.has('KeyH'); }
+  /** N toggles sound (M is reserved for the map). */
+  get mutePressed(): boolean { return this.pressed.has('KeyN'); }
   get pointerLocked(): boolean { return this.locked; }
 
   /** Camera-relative unit vector on the XZ plane; zero when no movement key is held. */
@@ -68,6 +73,6 @@ export class Input {
     this.lookDelta.x = 0;
     this.lookDelta.y = 0;
     if (!keepPresses) this.pressed.clear();
-    else this.pressed.delete('KeyP'); // pause is read every frame, not by a physics step
+    else for (const k of PER_FRAME) this.pressed.delete(k); // pause, horn and mute are read every frame, not by a physics step
   }
 }
