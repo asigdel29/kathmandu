@@ -1,6 +1,9 @@
 import * as THREE from 'three/webgpu';
 
-const TRACKED = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'Space', 'KeyE', 'KeyP']);
+const DIGITS = ['Digit0', 'Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9'];
+const TRACKED = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'Space', 'KeyE', 'KeyP', 'KeyJ', 'KeyF', 'Backspace', ...DIGITS]);
+/** One-shot keys read once per frame (not by a physics step), so they are cleared every frame. */
+const FRAME_KEYS = ['KeyP', 'KeyJ', 'KeyF', 'Backspace', ...DIGITS];
 
 export interface DriveAxes { throttle: number; steer: number; handbrake: boolean }
 
@@ -18,7 +21,7 @@ export class Input {
   constructor(private canvas: HTMLElement) {
     window.addEventListener('keydown', (e) => {
       if (!TRACKED.has(e.code)) return;
-      if (e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
+      if (e.code === 'Space' || e.code === 'Backspace' || e.code.startsWith('Arrow')) e.preventDefault();
       if (!e.repeat && !this.down.has(e.code)) this.pressed.add(e.code);
       this.down.add(e.code);
     });
@@ -37,6 +40,17 @@ export class Input {
   get jumpPressed(): boolean { return this.pressed.has('Space'); }
   get interactPressed(): boolean { return this.pressed.has('KeyE'); }
   get pausePressed(): boolean { return this.pressed.has('KeyP'); }
+  /** J: open or close the mission list. */
+  get journalPressed(): boolean { return this.pressed.has('KeyJ'); }
+  /** F: take a photo (mission photo steps). */
+  get photoPressed(): boolean { return this.pressed.has('KeyF'); }
+  /** Backspace: abandon the active mission (from the list). */
+  get abandonPressed(): boolean { return this.pressed.has('Backspace'); }
+  /** The digit key pressed this frame, 0-9. */
+  digitPressed(): number | undefined {
+    const i = DIGITS.findIndex((d) => this.pressed.has(d));
+    return i < 0 ? undefined : i;
+  }
   get pointerLocked(): boolean { return this.locked; }
 
   /** Camera-relative unit vector on the XZ plane; zero when no movement key is held. */
@@ -68,6 +82,6 @@ export class Input {
     this.lookDelta.x = 0;
     this.lookDelta.y = 0;
     if (!keepPresses) this.pressed.clear();
-    else this.pressed.delete('KeyP'); // pause is read every frame, not by a physics step
+    else for (const k of FRAME_KEYS) this.pressed.delete(k); // read every frame, not by a physics step
   }
 }

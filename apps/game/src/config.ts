@@ -9,6 +9,10 @@ export interface Config {
   autodrive: boolean;
   /** Ambient traffic; off with `traffic=0`. */
   traffic: boolean;
+  /** `tile=` was in the URL (otherwise `tile` is the default). */
+  tileGiven: boolean;
+  /** Debug: accept this mission id at ready and spawn at its start (missions/debug.ts). */
+  mission?: string;
 }
 
 export function readConfig(search: string, worldBase: string): Config {
@@ -26,5 +30,7 @@ export function readConfig(search: string, worldBase: string): Config {
     vehicle: vehicle.success ? vehicle.data : undefined,
     autodrive: q.get('autodrive') === '1',
     traffic: q.get('traffic') !== '0',
+    tileGiven: q.has('tile'),
+    mission: q.get('mission') || undefined,
   };
 }
