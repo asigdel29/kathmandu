@@ -248,8 +248,10 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
   const waterData = water.finish();
 
   // 11. props and nav. Generated props are kept only inside the tile's half-open square so a
-  // roadside light near a seam belongs to exactly one tile.
-  const propsFile = PropsFile.parse({ props: [...generated.filter(inTile), ...propsExtra.props] });
+  // roadside light near a seam belongs to exactly one tile. Props inside a hero footprint are
+  // dropped, like the buildings there; curated props.extra.json entries are kept as written.
+  const inHero = (p: Prop): boolean => heroes.some((h) => pointInRing([p.x, p.z], h.ring));
+  const propsFile = PropsFile.parse({ props: [...generated.filter((p) => inTile(p) && !inHero(p)), ...propsExtra.props] });
   const nav = Nav.parse({ nodes: [...nodes.values()], edges });
   writeFileSync(`${dir}/props.json`, JSON.stringify(propsFile));
   writeFileSync(`${dir}/nav.json`, JSON.stringify(nav));

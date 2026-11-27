@@ -25,4 +25,12 @@ describe('Manifest', () => {
     });
     expect(Object.keys(m.tiles)).toEqual(['x14_y17']);
   });
+  it('defaults hero rotationDeg and scale', () => {
+    const m = Manifest.parse({
+      version: 1, generatedAt: '2026-11-26T12:00:00Z', tileSize: 800, baseUrl: 'https://example.com/',
+      grid: { cols: 45, rows: 34, xMin: -17753.85, zMax: 13297.75 }, tiles: {},
+      heroes: { stupa: { tile: 'x14_y17', url: 'https://example.com/heroes/stupa/a/model.glb', sha256: 'a'.repeat(64), lat: 27.7043, lon: 85.307 } },
+    });
+    expect(m.heroes.stupa).toMatchObject({ lat: 27.7043, lon: 85.307, rotationDeg: 0, scale: 1 });
+  });
 });

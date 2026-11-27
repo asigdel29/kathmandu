@@ -7,6 +7,8 @@ export interface Config {
   vehicle?: VehicleType;
   /** Hold the throttle for a few seconds from ready (scripted checks). */
   autodrive: boolean;
+  /** Start facing this hero landmark (manifest slug). */
+  hero?: string;
   /** Ambient traffic; off with `traffic=0`. */
   traffic: boolean;
 }
@@ -16,6 +18,7 @@ export function readConfig(search: string, worldBase: string): Config {
   const [hh = '16', mm = '30'] = (q.get('t') ?? '16:30').split(':');
   const view = q.get('view');
   const vehicle = VehicleType.safeParse(q.get('vehicle'));
+  const hero = q.get('hero');
   return {
     worldBase,
     tile: (q.get('tile') as TileId | null) ?? 'x14_y17',
@@ -25,6 +28,7 @@ export function readConfig(search: string, worldBase: string): Config {
     freeze: q.get('freeze') === '1',
     vehicle: vehicle.success ? vehicle.data : undefined,
     autodrive: q.get('autodrive') === '1',
+    hero: hero && /^[a-z0-9-]+$/.test(hero) ? hero : undefined,
     traffic: q.get('traffic') !== '0',
   };
 }
