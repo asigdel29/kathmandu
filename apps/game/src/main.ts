@@ -94,6 +94,7 @@ async function main(): Promise<void> {
     const h = resume.position.heading;
     lookAt.set(start.x + Math.sin(h) * RESUME_LOOK_M, 0, start.z + Math.cos(h) * RESUME_LOOK_M);
     player.heading = h;
+    follow.yaw = h + Math.PI; // on foot the orbit camera starts behind the player
   }
   const nav = streamer.loaded().get(config.tile)?.nav;
   if (!spawn && nav) {
