@@ -37,6 +37,24 @@ jobs:
           BASE=${{ github.event.pull_request.base.sha || github.event.before }}
           echo "files<<EOF" >> $GITHUB_OUTPUT; git diff --name-only $BASE ${{ github.sha }} >> $GITHUB_OUTPUT; echo "EOF" >> $GITHUB_OUTPUT
           echo "tiles=$(git diff --name-only $BASE ${{ github.sha }} -- 'world/tiles/' | awk -F/ '{print $3}' | sort -u | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          echo "heroes=$(git diff --name-only $BASE ${{ github.sha }} | grep -E '^world/heroes/[^/]+/hero\.json$' | awk -F/ '{print $3}' | sort -u | tr '\n' ' ')" >> $GITHUB_OUTPUT
+      - name: hero models are published
+        if: steps.changed.outputs.heroes != '' && env.WORLD_BASE_URL != ''
+        run: |
+          base="${WORLD_BASE_URL%/}/"
+          fail=0
+          for h in ${{ steps.changed.outputs.heroes }}; do
+            f=world/heroes/$h/hero.json
+            [ -f "$f" ] || continue
+            sha=$(jq -r '.model.sha256 // empty' "$f")
+            [ -n "$sha" ] || { echo "$h: no model yet, skipping"; continue; }
+            url="${base}heroes/$h/$sha/model.glb"
+            if curl -sfI "$url" > /dev/null; then echo "$h: $url ok"; else echo "::error file=$f::$h model is not published: HEAD $url failed; run: bun run pipeline upload --hero $h"; fail=1; fi
+          done
+          exit $fail
+      - name: hero models not checked
+        if: steps.changed.outputs.heroes != '' && env.WORLD_BASE_URL == ''
+        run: echo "::warning::WORLD_BASE_URL is not set; not checking published models for ${{ steps.changed.outputs.heroes }}"
       - name: scope check
         if: github.event_name == 'pull_request'
         run: bun run pipeline scope-check --labels '${{ toJSON(github.event.pull_request.labels.*.name) }}' --base ${{ github.event.pull_request.base.sha }}
