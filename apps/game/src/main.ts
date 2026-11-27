@@ -1,7 +1,8 @@
 import * as THREE from 'three/webgpu';
-import { BASE_ELEVATION_M, TILE_SIZE_M, tileOrigin } from '@ktm/geo';
+import { BASE_ELEVATION_M, inGrid, lonLatToLocal, TILE_SIZE_M, tileId, tileIndexAt, tileOrigin } from '@ktm/geo';
 import { VehicleTunings, type VehicleType } from '@ktm/schema';
 import vehiclesJson from '../../../world/vehicles.json';
+import { GameAudio, TempleSources, type AudioState } from './audio/Audio.ts';
 import { FollowCamera } from './camera/FollowCamera.ts';
 import { readConfig } from './config.ts';
 import { Input } from './input/Input.ts';
@@ -13,6 +14,7 @@ import { Hud } from './ui/Hud.ts';
 import { fallbackSpawns, fixedSteps, nearestWithin, propSpawns, yawTowards } from './vehicles/Garage.ts';
 import { msToKmh, Vehicle } from './vehicles/Vehicle.ts';
 import { Clock, nightAmount } from './world/Clock.ts';
+import { HeroLoader, heroSpawn } from './world/HeroLoader.ts';
 import { loadManifest } from './world/manifest.ts';
 import { PropsRenderer } from './world/PropsRenderer.ts';
 import { Sky } from './world/Sky.ts';
@@ -21,7 +23,7 @@ import { TileStreamer } from './world/TileStreamer.ts';
 import { NavGraph } from './traffic/NavGraph.ts';
 import { Traffic } from './traffic/Traffic.ts';
 
-interface KtmDebug { speed: number; speedKmh: number; driving: VehicleType | null; vehicles: number; trafficCount: number }
+interface KtmDebug { speed: number; speedKmh: number; driving: VehicleType | null; vehicles: number; trafficCount: number; audio?: AudioState; temples: number }
 declare global { interface Window { __ktmReady?: boolean; __ktm?: unknown; __ktmDebug?: KtmDebug } }
 
 const STEP = 1 / 60;
@@ -55,23 +57,34 @@ async function main(): Promise<void> {
   const loader = new TileLoader(config.worldBase, manifest, facade);
   const props = new PropsRenderer(scene, night);
   const streamer = new TileStreamer(scene, physics, props, loader);
+  const heroes = new HeroLoader(scene, config.worldBase, manifest, (x, z) => streamer.heightAt(x, z));
+  const target = config.hero ? manifest.heroes[config.hero] : undefined;
+  if (config.hero && !target) console.warn(`hero ${config.hero}: not in manifest`);
 
   const o = tileOrigin(config.tile);
   const centre = new THREE.Vector3(o.x + TILE_SIZE_M / 2, 0, o.z + TILE_SIZE_M / 2);
-  const start = new THREE.Vector3(config.spawn?.x ?? centre.x, 200, config.spawn?.z ?? centre.z);
+  // A hero target overrides tile centre and spawn: start just south of its anchor, facing it.
+  const spawn = target ? heroSpawn(target) : config.spawn;
+  const start = new THREE.Vector3(spawn?.x ?? centre.x, 200, spawn?.z ?? centre.z);
   const player = new Character(scene, physics, start);
   const input = new Input(renderer.domElement);
   const follow = new FollowCamera(camera, config.view);
   const hud = new Hud(document.getElementById('hud')!);
-  const debug: KtmDebug = { speed: 0, speedKmh: 0, driving: null, vehicles: 0, trafficCount: 0 };
+  const debug: KtmDebug = { speed: 0, speedKmh: 0, driving: null, vehicles: 0, trafficCount: 0, temples: 0 };
   window.__ktmDebug = debug;
+  // Sound stays silent until the first key or pointer press (browser autoplay rule).
+  const audio = new GameAudio(camera, scene, `${import.meta.env.BASE_URL}audio/`);
+  audio.armOnGesture();
+  debug.audio = audio.state;
+  const temples = new TempleSources();
 
   await streamer.update(start, true);
   // Without an explicit spawn, start on the street node nearest the tile centre rather than inside a block.
   // The street view then looks down the longest road leaving that node.
-  const lookAt = centre.clone();
+  const anchor = target ? lonLatToLocal(target.lon, target.lat) : undefined;
+  const lookAt = anchor ? new THREE.Vector3(anchor.x, 0, anchor.z) : centre.clone();
   const nav = streamer.loaded().get(config.tile)?.nav;
-  if (!config.spawn && nav) {
+  if (!spawn && nav) {
     let best = Infinity; let startId = '';
     for (const n of nav.nodes) {
       const d = (o.x + n.x - centre.x) ** 2 + (o.z + n.z - centre.z) ** 2;
@@ -133,8 +146,9 @@ async function main(): Promise<void> {
   for (const v of vehicles) v.syncVisual(STEP);
   debug.vehicles = vehicles.length;
   debug.driving = config.vehicle ?? null;
+  await heroes.update(streamer.loaded());
   debug.trafficCount = traffic?.count ?? 0;
-  window.__ktm = { physics, streamer, player, sky, scene, camera, clock, night, vehicles, graph, traffic };
+  window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic, audio, temples };
   // Warm-up: render until the frame time settles (pipeline compiles and temporal history allocation happen in
   // the first frames) before reporting ready, so the first driven frames are not one long stall.
   follow.update(0, config.vehicle ? vehicles[vehicles.length - 1]!.group.position : player.position, input, lookAt, yawTowards(start, lookAt));
@@ -196,9 +210,16 @@ async function main(): Promise<void> {
     night.value = nightAmount(clock.time);
     sky.update(focus);
     void streamer.update(focus);
+    void heroes.update(streamer.loaded());
     const speed = car ? Math.abs(car.speedMs) : 0;
     debug.speed = speed; debug.speedKmh = msToKmh(speed); debug.driving = car ? car.type : null; debug.vehicles = vehicles.length;
     debug.trafficCount = traffic?.count ?? 0;
+    if (input.mutePressed) audio.toggleMute();
+    temples.sync(streamer.loaded().values());
+    const at = tileIndexAt(focus.x, focus.z);
+    const zone = inGrid(at.i, at.j) ? manifest.tiles[tileId(at.i, at.j)]?.zone : undefined;
+    audio.update(dt, { position: focus, zone, driving: car !== null, speedMs: speed, temples: temples.all, horn: input.hornPressed });
+    debug.audio = audio.state; debug.temples = temples.all.length;
     hud.update(dt, focus, clock.time, clock.paused, car ? msToKmh(car.speedMs) : undefined, traffic?.count);
     input.endFrame(!config.freeze && steps === 0);
     post.render();
