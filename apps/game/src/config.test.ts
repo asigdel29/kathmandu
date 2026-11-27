@@ -17,3 +17,8 @@ it('enables traffic unless traffic=0', () => {
   expect(readConfig('?traffic=1', '/world/').traffic).toBe(true);
   expect(readConfig('?traffic=0', '/world/').traffic).toBe(false);
 });
+it('enables pedestrians unless peds=0', () => {
+  expect(readConfig('', '/world/').peds).toBe(true);
+  expect(readConfig('?peds=1', '/world/').peds).toBe(true);
+  expect(readConfig('?peds=0', '/world/').peds).toBe(false);
+});

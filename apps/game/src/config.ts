@@ -9,6 +9,8 @@ export interface Config {
   autodrive: boolean;
   /** Ambient traffic; off with `traffic=0`. */
   traffic: boolean;
+  /** Pedestrians; off with `peds=0`. */
+  peds: boolean;
 }
 
 export function readConfig(search: string, worldBase: string): Config {
@@ -26,5 +28,6 @@ export function readConfig(search: string, worldBase: string): Config {
     vehicle: vehicle.success ? vehicle.data : undefined,
     autodrive: q.get('autodrive') === '1',
     traffic: q.get('traffic') !== '0',
+    peds: q.get('peds') !== '0',
   };
 }
