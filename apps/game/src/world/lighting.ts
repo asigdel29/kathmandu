@@ -73,13 +73,13 @@ export const SUN_DISTANCE_M = 800;
 /** Day hemisphere fill: sky colour above, warm bounce from the ground below. 0.5–0.8. */
 export const HEMI_SKY_DAY = 0xbfd4ff;
 export const HEMI_GROUND_DAY = 0x8a7a66;
-export const HEMI_INTENSITY_DAY = 0.5;
+export const HEMI_INTENSITY_DAY = 0.6;
 /** Night ambient. 0.08–0.12. */
 export const HEMI_SKY_NIGHT = 0x6f8cff;
 export const HEMI_GROUND_NIGHT = 0x4a4038;
 export const HEMI_INTENSITY_NIGHT = 0.1;
 /** Scene environment intensity (sky image-based light) by day and night. */
-export const ENV_INTENSITY_DAY = 0.3;
+export const ENV_INTENSITY_DAY = 0.35;
 export const ENV_INTENSITY_NIGHT = 4.5;
 /** The environment map is rebuilt when the clock moves by at least this many game hours. */
 export const ENV_REFRESH_HOURS = 0.5;
