@@ -109,7 +109,8 @@ Target: dense, lived-in, sun-drenched realism with a cinematic third-person came
 - OpenStreetMap extract: Geofabrik `asia/nepal-latest.osm.pbf`, `Last-Modified: Tue, 24 Nov 2026 23:41:27 GMT` (415,185,155 bytes), downloaded 2026-11-26.
 - Ingest (`bun run pipeline ingest`, osmium 1.19.1): `features: 1149194` in `data/raw/valley.geojsonl`.
 - Partition (`bun run pipeline partition`): `tiles with features: 1530 / 1530`, `content tiles: 1419` (111 terrain tiles).
-- World base URL: recorded when the public bucket exists.
+- World base URL: `WORLD_BASE_URL=https://pub-df2d6eb6805a419e86048072c49bc1c8.r2.dev/` (bucket `kathmandu-world`; tiles under `tiles/<id>/<inputsHash>/`, inputs under `data/v1/`, manifest at `manifest.json`).
+- App: Cloudflare Pages project `kathmandu`, https://kathmandu-9av.pages.dev (custom domain later).
 
 ## 11. Verified orientations
 
