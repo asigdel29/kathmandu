@@ -1,0 +1,264 @@
+{
+  "zone": "suburb",
+  "defaultLevels": 4,
+  "buildings": {
+    "a649403984": {
+      "levels": 7,
+      "roof": "flat",
+      "style": "institutional"
+    },
+    "a683098746": {
+      "levels": 4,
+      "roof": "flat",
+      "style": "institutional"
+    },
+    "a463668920": {
+      "levels": 3,
+      "roof": "flat",
+      "style": "institutional"
+    },
+    "a463668922": {
+      "levels": 1,
+      "roof": "flat",
+      "style": "institutional"
+    },
+    "a463668924": {
+      "levels": 3,
+      "roof": "flat",
+      "style": "institutional"
+    },
+    "a24648035": {
+      "levels": 6,
+      "roof": "pitched",
+      "style": "institutional"
+    },
+    "a456994840": {
+      "levels": 3,
+      "roof": "flat",
+      "style": "institutional"
+    },
+    "a439801922": {
+      "levels": 2,
+      "roof": "flat",
+      "style": "institutional"
+    },
+    "a1806919444": {
+      "levels": 2,
+      "roof": "pitched",
+      "style": "temple_brick",
+      "name": "Siddhi Ganasthan"
+    },
+    "a412162122": {
+      "levels": 7,
+      "roof": "flat",
+      "style": "rcc_plaster_white"
+    },
+    "a412162134": {
+      "levels": 5,
+      "roof": "flat",
+      "style": "rcc_plaster_white"
+    },
+    "a410071978": {
+      "levels": 5,
+      "roof": "flat",
+      "style": "rcc_plaster_white"
+    },
+    "a685948744": {
+      "levels": 7,
+      "roof": "flat",
+      "style": "rcc_plaster_white"
+    },
+    "a1301837194": {
+      "levels": 4,
+      "style": "rcc_plaster_white"
+    },
+    "a374694990": {
+      "levels": 3,
+      "roof": "flat",
+      "style": "commercial_glass"
+    },
+    "a525607770": {
+      "levels": 3,
+      "roof": "flat",
+      "style": "commercial_glass"
+    },
+    "a395807964": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a418618128": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a418618250": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a436917158": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a436931354": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a436931356": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a436931358": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a436931360": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a436934448": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a436934450": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a436934452": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a436934454": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a436934456": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a436934458": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a436934460": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a436934462": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a436939024": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a436939026": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a436939028": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a439801918": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a439801920": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a439801936": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a439801938": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a439801940": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a439801942": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a439801944": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a439801946": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a439801954": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a439801962": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a439801964": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a439801968": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a439801970": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a439801972": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a439801974": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a440191636": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a440191638": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a440191642": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a443531204": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a443531206": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a453872512": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a453872516": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a453872518": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a453872520": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a453872524": {
+      "style": "institutional",
+      "roof": "flat"
+    }
+  },
+  "roads": {},
+  "notes": "Naya Bazar / Paknajol: dense RCC 4-storey lanes with schools, colleges and hotels along Lekhnath Sadak and Ropeway Sadak."
+}

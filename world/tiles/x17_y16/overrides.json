@@ -1,0 +1,14 @@
+{
+  "zone": "suburb",
+  "defaultLevels": 4,
+  "buildings": {
+    "a1811706110": { "remove": true },
+    "a1811706196": { "remove": true },
+    "a1810987696": { "levels": 2, "roof": "pitched", "style": "temple_brick", "name": "Ganesh Mandir" },
+    "a449646356": { "levels": 2, "roof": "flat", "style": "institutional", "name": "Mandala Theatre" },
+    "a1811711602": { "levels": 3, "roof": "flat", "style": "institutional", "name": "Kathmandu Ward 10 office" },
+    "a479912712": { "levels": 2, "roof": "flat", "style": "institutional", "name": "Kingdom Hall of Jehovah's Witnesses" }
+  },
+  "roads": {},
+  "notes": "Dense RCC infill around Ghattekulo. Two sheds whose centroids lie on road centrelines are removed."
+}

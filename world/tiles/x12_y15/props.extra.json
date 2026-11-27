@@ -1,0 +1,23 @@
+{ "props": [
+  {"type":"shrine","x":756.0,"y":8.53,"z":679.2,"rotY":3.14,"scale":1},
+  {"type":"taxi_spawn","x":448.2,"y":3.77,"z":3.5,"rotY":1.39,"scale":1},
+  {"type":"taxi_spawn","x":492.2,"y":4.73,"z":5.2,"rotY":1.66,"scale":1},
+  {"type":"taxi_spawn","x":250.4,"y":13.4,"z":16.9,"rotY":-1.44,"scale":1},
+  {"type":"taxi_spawn","x":205.2,"y":11.66,"z":19.6,"rotY":-1.52,"scale":1},
+  {"type":"ped_spawn","x":241.3,"y":19.03,"z":418.8,"rotY":0,"scale":1},
+  {"type":"ped_spawn","x":239.2,"y":6.98,"z":480.4,"rotY":0,"scale":1},
+  {"type":"ped_spawn","x":350.8,"y":19.87,"z":476.5,"rotY":0,"scale":1},
+  {"type":"ped_spawn","x":340.0,"y":7.32,"z":539.3,"rotY":0,"scale":1},
+  {"type":"ped_spawn","x":52.2,"y":20.46,"z":3.1,"rotY":0,"scale":1},
+  {"type":"ped_spawn","x":441.8,"y":6.82,"z":579.1,"rotY":0,"scale":1},
+  {"type":"ped_spawn","x":155.8,"y":10.92,"z":427.6,"rotY":0,"scale":1},
+  {"type":"ped_spawn","x":201.9,"y":6.98,"z":476.7,"rotY":0,"scale":1},
+  {"type":"sign","x":441.4,"y":4.92,"z":12.7,"rotY":2.96,"scale":1},
+  {"type":"sign","x":488.1,"y":6.19,"z":15.9,"rotY":-3.05,"scale":1},
+  {"type":"sign","x":234.7,"y":11.46,"z":7.8,"rotY":0.05,"scale":1},
+  {"type":"sign","x":194.9,"y":10.85,"z":9.6,"rotY":0.03,"scale":1},
+  {"type":"awning","x":457.2,"y":5.29,"z":14.7,"rotY":3.1,"scale":1},
+  {"type":"awning","x":477.2,"y":5.96,"z":15.6,"rotY":3.1,"scale":1},
+  {"type":"awning","x":262.6,"y":12.1,"z":4.9,"rotY":0.32,"scale":1},
+  {"type":"awning","x":219.7,"y":10.78,"z":9.2,"rotY":0.05,"scale":1}
+] }
