@@ -17,7 +17,7 @@ for i, (x, z) in enumerate(corners):
     lean_x = (hash01(i + 7) - 0.5) * 0.14
     lean_z = (hash01(i + 19) - 0.5) * 0.14
     top = (x + lean_x, 1.3 + hash01(i + 3) * 0.2, z + lean_z)
-    m.frustum((x, H, z), top, 0.0125, 0.0125, 5, RUSTS[i])
+    m.frustum((x, H, z), top, 0.0125, 0.0125, 4, RUSTS[i])
     tops.append((x, z, lean_x, lean_z, top[1]))
 # square ties around the rods at two heights (thin flat bars)
 for ty in (0.62, 0.98):

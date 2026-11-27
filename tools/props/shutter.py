@@ -7,11 +7,11 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib import Mesh, hexcol, export
 
-SLAT_A = (0.92, 0.92, 0.9)
-SLAT_B = (0.66, 0.66, 0.65)
+SLAT_A = (1.0, 1.0, 0.98)
+SLAT_B = (0.74, 0.74, 0.73)
 STEEL = hexcol('#4b4e50')
 STEEL_D = hexcol('#34373a')
-DARK = hexcol('#161412')
+DARK = hexcol('#2e271f')
 FLOOR = hexcol('rcc_grey', 0.75)
 HOUSE = hexcol('#6e7174')
 

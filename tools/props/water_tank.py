@@ -10,7 +10,7 @@ BLOCK = hexcol('rcc_grey', 0.8)
 PIPE = hexcol('#3a5a7a')
 
 m = Mesh()
-S = 14
+S = 10
 R = 0.6
 # three concrete blocks it stands on
 for a in (0.0, 2.09, 4.19):

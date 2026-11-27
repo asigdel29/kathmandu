@@ -17,10 +17,10 @@ BARK_D = hexcol('#43362a')
 
 def trunk(m, base_r, height, forks):
     """Tapered trunk with `forks` branches: list of (x, y, z) tips."""
-    m.cyl(0, 0, 0, 0.45, base_r * 1.25, base_r, 7, BARK_D)
-    m.cyl(0, 0, 0.45, height, base_r, base_r * 0.6, 7, BARK)
+    m.cyl(0, 0, 0, 0.45, base_r * 1.25, base_r, 5, BARK_D)
+    m.cyl(0, 0, 0.45, height, base_r, base_r * 0.6, 5, BARK)
     for tip in forks:
-        m.frustum((0, height * 0.85, 0), tip, base_r * 0.5, base_r * 0.2, 5, BARK, caps=False)
+        m.frustum((0, height * 0.85, 0), tip, base_r * 0.5, base_r * 0.2, 4, BARK, caps=False)
 
 
 def peepal():
@@ -29,7 +29,7 @@ def peepal():
     g = [hexcol('#5a7a34'), hexcol('#4b6a2b'), hexcol('#678a3a'), hexcol('#3f5e27')]
     # (x, y, z, rx, ry, rz, detail)
     blobs = [(0, 7.6, 0, 3.6, 2.0, 3.6, 1), (-3.4, 6.5, 0.4, 2.6, 1.6, 2.6, 1), (3.5, 6.8, -0.6, 2.7, 1.7, 2.6, 1),
-             (0.3, 6.5, 3.3, 2.5, 1.5, 2.4, 1), (-0.4, 6.4, -3.3, 2.5, 1.5, 2.4, 1),
+             (0.3, 6.5, 3.3, 2.5, 1.5, 2.4, 0), (-0.4, 6.4, -3.3, 2.5, 1.5, 2.4, 0),
              (-1.8, 8.8, 1.2, 1.7, 1.0, 1.7, 0), (2.0, 8.9, -0.8, 1.6, 1.0, 1.6, 0), (0.0, 5.4, 0, 3.0, 0.8, 3.0, 0)]
     for i, (x, y, z, rx, ry, rz, d) in enumerate(blobs):
         m.blob(x, y, z, rx, ry, rz, g[i % 4], detail=d, jitter=0.16, seed=i + 1, shade=0.28)

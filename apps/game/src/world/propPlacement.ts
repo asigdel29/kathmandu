@@ -4,6 +4,9 @@ import palette from '../../../../world/style/palette.json';
 
 export type PropType = Prop['type'];
 
+/** Types that have a model; `taxi_spawn` and `ped_spawn` are markers and are not drawn. */
+export const RENDERED = new Set<PropType>(['streetlight', 'tree', 'water_tank', 'rebar', 'powerpole', 'shrine', 'sign', 'awning', 'billboard', 'prayer_flags', 'shutter', 'wires']);
+
 /** Tree models: peepal (wide crown), bottlebrush, jacaranda. A tree's variant comes from its position. */
 export const TREE_VARIANTS = ['tree_peepal', 'tree_bottlebrush', 'tree_jacaranda'] as const;
 const TREE_WEIGHTS = [0.4, 0.3, 0.3];
@@ -37,7 +40,7 @@ const hex = (v: string): number => parseInt((P[v] ?? v).replace('#', ''), 16);
 const TINTS: Partial<Record<PropType, number[]>> = {
   sign: ['tin_blue', 'marigold', 'saffron', 'plaster_white', 'pastel_1', 'pastel_2', 'pastel_4', 'newari_brick', '#3f7a52'].map(hex),
   awning: ['tin_blue', 'saffron', 'marigold', 'newari_brick', '#3f7a52', '#c4281c'].map(hex),
-  shutter: ['#9aa4a8', '#7f93a6', '#a9564a', '#7d9a78', '#cfc8b4', 'tin_blue'].map(hex),
+  shutter: ['#b5bec2', '#9fb3c4', '#c97c6c', '#9cb894', '#e0d9c4', '#6c93c0'].map(hex),
   tree: ['#ffffff', '#e8f0d8', '#d4e2b8', '#f2f6e4', '#c9d9a8'].map(hex),
 };
 

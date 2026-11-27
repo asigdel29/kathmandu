@@ -4,7 +4,7 @@ import type { UniformNode } from 'three/webgpu';
 import { tileOrigin, type TileId } from '@ktm/geo';
 import type { Prop } from '@ktm/schema';
 import type { LoadedTile } from './TileLoader.ts';
-import { modelFile, placeMatrix, tintHex, variantOf, type PropType } from './propPlacement.ts';
+import { modelFile, placeMatrix, RENDERED, tintHex, variantOf, type PropType } from './propPlacement.ts';
 
 const CAPACITY = 20_000;
 const HIDDEN = new THREE.Matrix4().makeScale(0, 0, 0);
@@ -16,7 +16,6 @@ const GLOW: Partial<Record<PropType, { color: [number, number, number]; gain: nu
 };
 /** Thin geometry that costs more in the shadow pass than it shows there. */
 const NO_SHADOW = new Set<PropType>(['wires', 'prayer_flags']);
-const RENDERED = new Set<PropType>(['streetlight', 'tree', 'water_tank', 'rebar', 'powerpole', 'shrine', 'sign', 'awning', 'billboard', 'prayer_flags', 'shutter', 'wires']);
 
 /** Visible stand-in while a model loads or when its file is missing: a 0.5 m grey post. */
 function fallbackGeometry(): THREE.BufferGeometry {
