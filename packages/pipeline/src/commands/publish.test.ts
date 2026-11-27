@@ -31,7 +31,7 @@ it('writes a schema-valid manifest from built tiles and modelled heroes', async 
   const m = Manifest.parse(buildManifest({ tilesDir: f.outRoot, worldDir: f.worldDir, baseUrl: BASE }));
   expect(m.tiles).toEqual({ x14_y17: { hash: f.meta.inputsHash, kind: 'terrain', zone: f.meta.zone, buildings: 1 } });
   expect(Object.keys(m.heroes)).toEqual(['test-stupa']);
-  expect(m.heroes['test-stupa']).toEqual({ tile: 'x14_y17', url: `${BASE}heroes/test-stupa/${SHA}/model.glb`, sha256: SHA });
+  expect(m.heroes['test-stupa']).toEqual({ tile: 'x14_y17', url: `${BASE}heroes/test-stupa/${SHA}/model.glb`, sha256: SHA, lat: 27.7043, lon: 85.307, rotationDeg: 0, scale: 1 });
 });
 
 it('merge keeps remote tiles that were not rebuilt and lets local builds win', async () => {
