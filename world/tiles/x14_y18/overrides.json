@@ -1,0 +1,25 @@
+{
+  "zone": "commercial",
+  "defaultLevels": 4,
+  "buildings": {
+    "a1046344776": { "remove": true },
+    "a682729544": { "remove": true },
+    "a2041047916": { "remove": true },
+    "a1812422756": { "levels": 3, "roof": "pitched", "style": "temple_brick", "name": "Maitripur Mahavihar (Kwa Bahal)" },
+    "a2833004168": { "levels": 2, "roof": "pitched", "style": "temple_brick" },
+    "a1810049328": { "levels": 2, "roof": "pitched", "style": "temple_brick" },
+    "a1810130854": { "levels": 2, "roof": "pitched", "style": "temple_brick" },
+    "a1811036830": { "levels": 3, "roof": "flat", "style": "institutional", "name": "Museum of Nepali Art" },
+    "a24572121": { "levels": 3, "roof": "flat", "style": "commercial_glass", "name": "Nepa Banquet" },
+    "a225103590": { "levels": 2, "roof": "flat", "style": "institutional" },
+    "a439249410": { "levels": 3, "roof": "flat", "style": "institutional" },
+    "a441107260": { "style": "institutional" },
+    "a441109554": { "style": "institutional" },
+    "a441110760": { "style": "institutional" },
+    "a441990480": { "style": "institutional" },
+    "a443531192": { "style": "institutional" },
+    "a443603030": { "style": "institutional" }
+  },
+  "roads": {},
+  "notes": "Thamel tourist quarter with Paknajol and Chhetrapati edges: RCC hotels, trekking shops and cafes, not Newar brick. Temples and bahal footprints keep brick style."
+}

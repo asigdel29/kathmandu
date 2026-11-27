@@ -17,3 +17,8 @@ it('parses vehicle params', () => {
   expect(readConfig('', '/world/')).toMatchObject({ vehicle: undefined, autodrive: false });
   expect(readConfig('?vehicle=bus&autodrive=yes', '/world/')).toMatchObject({ vehicle: undefined, autodrive: false });
 });
+it('enables traffic unless traffic=0', () => {
+  expect(readConfig('', '/world/').traffic).toBe(true);
+  expect(readConfig('?traffic=1', '/world/').traffic).toBe(true);
+  expect(readConfig('?traffic=0', '/world/').traffic).toBe(false);
+});

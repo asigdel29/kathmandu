@@ -19,8 +19,10 @@ import { PropsRenderer } from './world/PropsRenderer.ts';
 import { Sky } from './world/Sky.ts';
 import { TileLoader } from './world/TileLoader.ts';
 import { TileStreamer } from './world/TileStreamer.ts';
+import { NavGraph } from './traffic/NavGraph.ts';
+import { Traffic } from './traffic/Traffic.ts';
 
-interface KtmDebug { speed: number; speedKmh: number; driving: VehicleType | null; vehicles: number }
+interface KtmDebug { speed: number; speedKmh: number; driving: VehicleType | null; vehicles: number; trafficCount: number }
 declare global { interface Window { __ktmReady?: boolean; __ktm?: unknown; __ktmDebug?: KtmDebug } }
 
 const STEP = 1 / 60;
@@ -67,7 +69,7 @@ async function main(): Promise<void> {
   const input = new Input(renderer.domElement);
   const follow = new FollowCamera(camera, config.view);
   const hud = new Hud(document.getElementById('hud')!);
-  const debug: KtmDebug = { speed: 0, speedKmh: 0, driving: null, vehicles: 0 };
+  const debug: KtmDebug = { speed: 0, speedKmh: 0, driving: null, vehicles: 0, trafficCount: 0 };
   window.__ktmDebug = debug;
 
   await streamer.update(start, true);
@@ -93,6 +95,15 @@ async function main(): Promise<void> {
     }
   }
   const groundY = (x: number, z: number) => (streamer.heightAt(x, z) ?? BASE_ELEVATION_M) - BASE_ELEVATION_M;
+
+  // Ambient traffic drives the nav graph stitched from the lod-0 tiles; it is re-synced with the streamer every frame.
+  const graph = new NavGraph();
+  const navTiles = () => [...streamer.loaded().values()].filter((t) => t.lod === 0);
+  graph.sync(navTiles());
+  const traffic = config.traffic
+    ? new Traffic(scene, physics, graph, tunings.vehicles, { groundY: (x, z) => { const h = streamer.heightAt(x, z); return h === undefined ? undefined : h - BASE_ELEVATION_M; } })
+    : undefined;
+  traffic?.update(0, start);
 
   // Parked vehicles at the taxi_spawn props of the loaded lod-0 tiles, else one of each type near the spawn.
   const vehicles: Vehicle[] = [];
@@ -130,7 +141,8 @@ async function main(): Promise<void> {
   debug.vehicles = vehicles.length;
   debug.driving = config.vehicle ?? null;
   await heroes.update(streamer.loaded());
-  window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles };
+  debug.trafficCount = traffic?.count ?? 0;
+  window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic };
   // Warm-up: render until the frame time settles (pipeline compiles and temporal history allocation happen in
   // the first frames) before reporting ready, so the first driven frames are not one long stall.
   follow.update(0, config.vehicle ? vehicles[vehicles.length - 1]!.group.position : player.position, input, lookAt, yawTowards(start, lookAt));
@@ -176,6 +188,12 @@ async function main(): Promise<void> {
         // A parked vehicle whose tile streamed out has nothing under it; drop it once it has fallen away.
         if (!v.occupied && v.group.position.y < LOST_BELOW_Y) { v.dispose(); vehicles.splice(i, 1); }
       }
+      if (traffic) {
+        // Kinematic targets set here are reached by the colliders during the next frame's physics steps.
+        graph.sync(navTiles());
+        const at: Vehicle | null = driving;
+        traffic.update(steps * STEP, at ? at.group.position : player.position);
+      }
     }
     const car: Vehicle | null = driving;
     if (car) focus.copy(car.group.position); else focus.copy(player.position);
@@ -189,7 +207,8 @@ async function main(): Promise<void> {
     void heroes.update(streamer.loaded());
     const speed = car ? Math.abs(car.speedMs) : 0;
     debug.speed = speed; debug.speedKmh = msToKmh(speed); debug.driving = car ? car.type : null; debug.vehicles = vehicles.length;
-    hud.update(dt, focus, clock.time, clock.paused, car ? msToKmh(car.speedMs) : undefined);
+    debug.trafficCount = traffic?.count ?? 0;
+    hud.update(dt, focus, clock.time, clock.paused, car ? msToKmh(car.speedMs) : undefined, traffic?.count);
     input.endFrame(!config.freeze && steps === 0);
     post.render();
   };

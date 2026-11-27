@@ -9,6 +9,8 @@ export interface Config {
   autodrive: boolean;
   /** Start facing this hero landmark (manifest slug). */
   hero?: string;
+  /** Ambient traffic; off with `traffic=0`. */
+  traffic: boolean;
 }
 
 export function readConfig(search: string, worldBase: string): Config {
@@ -27,5 +29,6 @@ export function readConfig(search: string, worldBase: string): Config {
     vehicle: vehicle.success ? vehicle.data : undefined,
     autodrive: q.get('autodrive') === '1',
     hero: hero && /^[a-z0-9-]+$/.test(hero) ? hero : undefined,
+    traffic: q.get('traffic') !== '0',
   };
 }

@@ -1,0 +1,28 @@
+{
+  "zone": "old-core",
+  "buildings": {
+    "a1807529628": { "levels": 3, "roof": "pitched", "style": "temple_brick", "name": "Bhimsen Temple" },
+    "a1807530256": { "levels": 3, "roof": "pitched", "style": "temple_brick", "name": "Jaisi Deval Temple" },
+    "a1808044030": { "levels": 2, "roof": "pitched", "style": "temple_brick", "name": "Wonde Narayan Temple" },
+    "a779029298": { "levels": 2, "roof": "pitched", "style": "temple_brick", "name": "Shiva Temple" },
+    "a1002646704": { "levels": 2, "roof": "pitched", "style": "temple_brick", "name": "Nasa Dya" },
+    "a224899140": { "levels": 3, "roof": "flat", "style": "temple_brick" },
+    "a682297352": { "levels": 3, "roof": "flat", "style": "temple_brick", "name": "Radha Krishna Mandir" },
+    "a680972474": { "levels": 2, "roof": "pitched", "style": "temple_brick", "name": "Dakshinkali Mandir" },
+    "a453022430": { "levels": 2, "roof": "pitched", "style": "temple_brick", "name": "Buddhabari" },
+    "a1807529236": { "levels": 1, "roof": "pitched", "style": "temple_brick", "name": "Majipat Ganesh" },
+    "a1808373742": { "levels": 3, "roof": "flat", "style": "institutional", "name": "Kausi Theatre" },
+    "a225309580": { "levels": 4, "roof": "flat", "style": "institutional", "name": "Nepal Bank Limited Central Office" },
+    "a225309624": { "levels": 4, "roof": "flat", "style": "institutional" },
+    "a225309626": { "levels": 4, "roof": "flat", "style": "institutional" },
+    "a412142598": { "levels": 2, "roof": "flat", "style": "institutional" },
+    "a463256416": { "levels": 8, "style": "institutional" },
+    "a402055224": { "levels": 4, "roof": "flat", "style": "commercial_glass" },
+    "a410366342": { "levels": 5, "style": "commercial_glass" },
+    "a225309608": { "levels": 5, "style": "commercial_glass" },
+    "a402055188": { "levels": 5, "style": "commercial_glass" },
+    "a369791722": { "levels": 8, "style": "commercial_glass" }
+  },
+  "roads": {},
+  "notes": "Bhimsenthan, Jor Ganesh and Pako. Dense Newar lanes in the north-west, Bagdurbar and the Pukhudha Marg shops in the north-east, Tripureshwor Marg along the south. Temples get brick style and pitched roofs, a 0.8 m height tag on Jaisi Deval is replaced by storey counts, banks and the theatre get the institutional style, and the large shopping blocks get commercial glass. No footprint crosses a road in the source data, so nothing is removed."
+}
