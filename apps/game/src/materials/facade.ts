@@ -1,6 +1,7 @@
 import * as THREE from 'three/webgpu';
-import { attribute, float, floor, fract, hash, int, mix, normalWorld, positionWorld, select, step, uniform, uniformArray, uv, vec3 } from 'three/tsl';
+import { attribute, clamp, float, floor, fract, hash, int, mix, normalWorld, positionWorld, select, step, uniform, uniformArray, uv, vec3 } from 'three/tsl';
 import type { UniformNode } from 'three/webgpu';
+import { WINDOW_EMISSIVE } from '../world/lighting.ts';
 
 /** Base colour per facade style, index = StyleId enum order. */
 const STYLE_COLORS = [
@@ -65,11 +66,13 @@ export function createFacadeMaterial(night: UniformNode<'float'>): THREE.MeshSta
     .add(tile.y.mul(104729));
   // hash() converts its seed to uint; negative world coordinates would all collapse to one value.
   const lit = step(0.6, hash(seed.abs())).mul(windowMask);
+  // Each lit window gets its own brightness and a vertical falloff, so the night facade is not a grid of identical flat rectangles.
+  const glow = mix(float(0.55), float(1), hash(seed.abs().add(977))).mul(mix(float(1), float(0.6), clamp(fv.sub(0.3).div(0.48), 0, 1)));
 
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.colorNode = colorNode;
   mat.roughnessNode = mix(float(0.85), float(0.35), windowMask);
   mat.metalnessNode = float(0);
-  mat.emissiveNode = vec3(1.0, 0.75, 0.4).mul(night).mul(lit);
+  mat.emissiveNode = vec3(1.0, 0.55, 0.22).mul(night).mul(lit).mul(glow).mul(WINDOW_EMISSIVE);
   return mat;
 }
