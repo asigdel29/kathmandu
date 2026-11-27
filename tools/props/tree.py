@@ -63,6 +63,13 @@ def jacaranda():
     return m
 
 
-export(peepal(), 'tree_peepal', roughness=0.95)
-export(bottlebrush(), 'tree_bottlebrush', roughness=0.95)
-export(jacaranda(), 'tree_jacaranda', roughness=0.95)
+def scaled(mesh, s):
+    out = Mesh()
+    out.merge(mesh, scale=s)
+    return out
+
+
+# Street/temple trees stand 6-8 m; the generator also scales each instance by 0.8-1.4.
+export(scaled(peepal(), 0.72), 'tree_peepal', roughness=0.95)
+export(scaled(bottlebrush(), 0.9), 'tree_bottlebrush', roughness=0.95)
+export(scaled(jacaranda(), 0.85), 'tree_jacaranda', roughness=0.95)
