@@ -62,12 +62,20 @@ export const Hero = z.object({
 }).strict();
 export type Hero = z.infer<typeof Hero>;
 
+/** Game-clock hours; the window wraps past midnight when fromH > toH. */
+export const ClockWindow = z.object({ fromH: z.number().min(0).max(24), toH: z.number().min(0).max(24) }).strict();
 export const MissionStep = z.object({
   kind: z.enum(['goto', 'pickup', 'dropoff', 'photo', 'wait']),
+  /** World coordinates (section 1), not tile-local. */
   x: z.number(), z: z.number(),
   radius: z.number().positive().default(8),
   text: z.string(),
-});
+  /** `wait` steps: seconds to stay inside the radius without leaving it. */
+  waitS: z.number().positive().optional(),
+  /** The step only completes while the game clock is inside this window. */
+  window: ClockWindow.optional(),
+}).strict().refine((s) => s.kind !== 'wait' || s.waitS !== undefined, { message: 'wait steps need waitS', path: ['waitS'] });
+export type MissionStep = z.infer<typeof MissionStep>;
 export const Mission = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/),
   title: z.string(),
