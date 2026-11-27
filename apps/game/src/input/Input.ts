@@ -1,6 +1,6 @@
 import * as THREE from 'three/webgpu';
 
-const TRACKED = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'Space', 'KeyE', 'KeyP']);
+const TRACKED = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'Space', 'KeyE', 'KeyP', 'KeyM']);
 
 export interface DriveAxes { throttle: number; steer: number; handbrake: boolean }
 
@@ -37,7 +37,11 @@ export class Input {
   get jumpPressed(): boolean { return this.pressed.has('Space'); }
   get interactPressed(): boolean { return this.pressed.has('KeyE'); }
   get pausePressed(): boolean { return this.pressed.has('KeyP'); }
+  get mapPressed(): boolean { return this.pressed.has('KeyM'); }
   get pointerLocked(): boolean { return this.locked; }
+
+  /** Give the mouse back, e.g. while the map screen is open. */
+  releasePointer(): void { if (this.locked) document.exitPointerLock(); }
 
   /** Camera-relative unit vector on the XZ plane; zero when no movement key is held. */
   moveVector(camera: THREE.Camera): THREE.Vector3 {
@@ -68,6 +72,6 @@ export class Input {
     this.lookDelta.x = 0;
     this.lookDelta.y = 0;
     if (!keepPresses) this.pressed.clear();
-    else this.pressed.delete('KeyP'); // pause is read every frame, not by a physics step
+    else { this.pressed.delete('KeyP'); this.pressed.delete('KeyM'); } // pause and map are read every frame, not by a physics step
   }
 }

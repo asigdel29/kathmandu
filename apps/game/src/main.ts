@@ -2,14 +2,19 @@ import * as THREE from 'three/webgpu';
 import { BASE_ELEVATION_M, TILE_SIZE_M, tileOrigin } from '@ktm/geo';
 import { VehicleTunings, type VehicleType } from '@ktm/schema';
 import vehiclesJson from '../../../world/vehicles.json';
+import heroesJson from '../../../world/heroes/heroes.json';
 import { FollowCamera } from './camera/FollowCamera.ts';
 import { readConfig } from './config.ts';
 import { Input } from './input/Input.ts';
+import { MapScreen } from './map/MapScreen.ts';
+import { Minimap } from './map/Minimap.ts';
+import { headingFromDirection, type XZ } from './map/projection.ts';
+import { Waypoint } from './map/waypoint.ts';
 import { createFacadeMaterial, createNightUniform } from './materials/facade.ts';
 import { Physics } from './physics/Physics.ts';
 import { Character } from './player/Character.ts';
 import { createRenderer } from './renderer.ts';
-import { Hud } from './ui/Hud.ts';
+import { Hud, relativeBearing } from './ui/Hud.ts';
 import { fallbackSpawns, fixedSteps, nearestWithin, propSpawns, yawTowards } from './vehicles/Garage.ts';
 import { msToKmh, Vehicle } from './vehicles/Vehicle.ts';
 import { Clock, nightAmount } from './world/Clock.ts';
@@ -21,7 +26,7 @@ import { TileStreamer } from './world/TileStreamer.ts';
 import { NavGraph } from './traffic/NavGraph.ts';
 import { Traffic } from './traffic/Traffic.ts';
 
-interface KtmDebug { speed: number; speedKmh: number; driving: VehicleType | null; vehicles: number; trafficCount: number }
+interface KtmDebug { speed: number; speedKmh: number; driving: VehicleType | null; vehicles: number; trafficCount: number; mapOpen: boolean; waypoint: XZ | null }
 declare global { interface Window { __ktmReady?: boolean; __ktm?: unknown; __ktmDebug?: KtmDebug } }
 
 const STEP = 1 / 60;
@@ -34,6 +39,7 @@ const ENTER_RADIUS_M = 3;
 const AUTODRIVE_S = 5;
 const CAPSULE_LIFT_M = 1.2;
 const LOST_BELOW_Y = -500;
+const MINIMAP_INTERVAL_S = 1 / 15;
 
 async function main(): Promise<void> {
   const config = readConfig(location.search, import.meta.env.VITE_WORLD_BASE_URL ?? '/world/');
@@ -63,8 +69,13 @@ async function main(): Promise<void> {
   const input = new Input(renderer.domElement);
   const follow = new FollowCamera(camera, config.view);
   const hud = new Hud(document.getElementById('hud')!);
-  const debug: KtmDebug = { speed: 0, speedKmh: 0, driving: null, vehicles: 0, trafficCount: 0 };
+  const debug: KtmDebug = { speed: 0, speedKmh: 0, driving: null, vehicles: 0, trafficCount: 0, mapOpen: false, waypoint: null };
   window.__ktmDebug = debug;
+  // Minimap and full map; mission markers are filled by the mission system.
+  const missionMarkers: XZ[] = [];
+  const waypoint = new Waypoint();
+  const minimap = new Minimap(document.body);
+  const mapScreen = new MapScreen(document.body, manifest, heroesJson, (p) => { if (p) waypoint.set(p.x, p.z); else waypoint.clear(); });
 
   await streamer.update(start, true);
   // Without an explicit spawn, start on the street node nearest the tile centre rather than inside a block.
@@ -134,7 +145,7 @@ async function main(): Promise<void> {
   debug.vehicles = vehicles.length;
   debug.driving = config.vehicle ?? null;
   debug.trafficCount = traffic?.count ?? 0;
-  window.__ktm = { physics, streamer, player, sky, scene, camera, clock, night, vehicles, graph, traffic };
+  window.__ktm = { physics, streamer, player, sky, scene, camera, clock, night, vehicles, graph, traffic, minimap, mapScreen, waypoint, missionMarkers };
   // Warm-up: render until the frame time settles (pipeline compiles and temporal history allocation happen in
   // the first frames) before reporting ready, so the first driven frames are not one long stall.
   follow.update(0, config.vehicle ? vehicles[vehicles.length - 1]!.group.position : player.position, input, lookAt, yawTowards(start, lookAt));
@@ -152,11 +163,15 @@ async function main(): Promise<void> {
   let acc = 0;
   let last = performance.now();
   const focus = new THREE.Vector3();
+  const look = new THREE.Vector3();
+  let minimapAcc = MINIMAP_INTERVAL_S;
   const frame = (now: number) => {
     // Physics runs in fixed steps; the clock follows wall time so slow frames do not slow the day.
     const frameDt = Math.max(0, (now - last) / 1000);
     last = now;
     const dt = Math.min(frameDt, 0.05);
+    // The nav graph follows the streamer; traffic and the maps read it.
+    graph.sync(navTiles());
     let steps = 0;
     if (!config.freeze) {
       ({ steps, acc } = config.autodrive
@@ -182,7 +197,6 @@ async function main(): Promise<void> {
       }
       if (traffic) {
         // Kinematic targets set here are reached by the colliders during the next frame's physics steps.
-        graph.sync(navTiles());
         const at: Vehicle | null = driving;
         traffic.update(steps * STEP, at ? at.group.position : player.position);
       }
@@ -200,6 +214,20 @@ async function main(): Promise<void> {
     debug.speed = speed; debug.speedKmh = msToKmh(speed); debug.driving = car ? car.type : null; debug.vehicles = vehicles.length;
     debug.trafficCount = traffic?.count ?? 0;
     hud.update(dt, focus, clock.time, clock.paused, car ? msToKmh(car.speedMs) : undefined, traffic?.count);
+    if (input.mapPressed && mapScreen.toggle(focus.x, focus.z)) input.releasePointer();
+    const yaw = car ? car.yaw : player.heading;
+    const headingDeg = headingFromDirection(Math.sin(yaw), Math.cos(yaw));
+    const info = waypoint.update(focus.x, focus.z);
+    camera.getWorldDirection(look);
+    hud.setWaypoint(info && { distance: info.distance, relDeg: relativeBearing(info.bearing, headingFromDirection(look.x, look.z)) });
+    minimapAcc += frameDt;
+    if (minimapAcc >= MINIMAP_INTERVAL_S) {
+      minimapAcc = 0;
+      minimap.draw({ x: focus.x, z: focus.z, headingDeg, graph, traffic: traffic?.sim.cars ?? [], markers: missionMarkers, waypoint: waypoint.target });
+    }
+    if (mapScreen.isOpen) mapScreen.draw({ x: focus.x, z: focus.z, headingDeg, graph, markers: missionMarkers, waypoint: waypoint.target });
+    debug.mapOpen = mapScreen.isOpen;
+    debug.waypoint = waypoint.target ?? null;
     input.endFrame(!config.freeze && steps === 0);
     post.render();
   };
