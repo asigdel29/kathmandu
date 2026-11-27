@@ -1,0 +1,26 @@
+{
+  "zone": "suburb",
+  "defaultLevels": 4,
+  "buildings": {
+    "a436917864": {
+      "levels": 3,
+      "roof": "flat",
+      "style": "institutional",
+      "name": "Prime Global School"
+    },
+    "a1303982008": {
+      "levels": 4,
+      "roof": "flat",
+      "style": "commercial_glass",
+      "name": "Momo Center"
+    },
+    "a692686962": {
+      "levels": 3,
+      "roof": "flat",
+      "style": "commercial_glass",
+      "name": "Prime Mart"
+    }
+  },
+  "roads": {},
+  "notes": "Dense residential district on the west bank of the Bishnumati, north of Chamati. Default storey count raised to 4; the school is styled institutional and the two shopfronts on Yekikaran Sadak as commercial. No footprint crosses a road, so nothing is removed."
+}
