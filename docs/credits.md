@@ -1,8 +1,7 @@
 # Credits
 
-<<<<<<< HEAD
-Every third-party asset that ships with the game is listed here with its source, author and licence.
-Only CC0 sources (Poly Haven, Kenney, Quaternius, ambientCG) or CC-BY assets credited below are allowed.
+Every asset that ships with the game is listed here with its source, author and licence. Map and terrain data attributions are in the README under "Data and credits".
+Only CC0 sources (Poly Haven, Kenney, Quaternius, ambientCG) or CC-BY assets credited here are allowed.
 
 ## Props (`apps/game/public/models/props/*.glb`)
 
@@ -14,12 +13,6 @@ textures or photographs are used, so there is nothing to attribute. The models a
 | Model | Source | Author | Licence |
 |---|---|---|---|
 | `streetlight`, `powerpole`, `wires`, `water_tank`, `rebar`, `awning`, `sign`, `billboard`, `shrine`, `prayer_flags`, `shutter`, `tree_peepal`, `tree_bottlebrush`, `tree_jacaranda` | `tools/props/*.py` in this repository | Anubhav Sigdel | MIT (repository licence) |
-
-## Third-party assets
-
-None yet.
-=======
-Third-party assets shipped with the game. Map and terrain data attributions are in the README under "Data and credits".
 
 ## Audio
 
@@ -33,4 +26,3 @@ All sounds are released under the Creative Commons CC0 1.0 Universal public doma
 | `engine-loop.mp3` | Car engine loop; playback rate follows vehicle speed | https://opengameart.org/content/racing-car-engine-sound-loops (`loop_0.wav`) | domasx2 (cut from a public-domain pdsounds.org recording) | CC0 1.0 | loudness normalised, re-encoded |
 | `horn.mp3` | Car horn, double honk | https://freesound.org/people/DeVern/sounds/349922/ ("Car Horn Honk.wav") | DeVern | CC0 1.0 | 1.42–3.10 s excerpt, short fades, loudness normalised, mono |
 | `temple-bell.mp3` | Temple bell at the Pashupatinath old-age home, Kathmandu | https://freesound.org/people/pashupati_007/sounds/199901/ ("bell_rings.mp3") | pashupati_007 | CC0 1.0 | single strike from 11.0 s, 7 s with 2 s fade-out, loudness normalised |
->>>>>>> origin/main
