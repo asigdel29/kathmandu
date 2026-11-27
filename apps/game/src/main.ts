@@ -1,7 +1,8 @@
 import * as THREE from 'three/webgpu';
-import { BASE_ELEVATION_M, lonLatToLocal, TILE_SIZE_M, tileOrigin } from '@ktm/geo';
+import { BASE_ELEVATION_M, inGrid, lonLatToLocal, TILE_SIZE_M, tileId, tileIndexAt, tileOrigin } from '@ktm/geo';
 import { VehicleTunings, type VehicleType } from '@ktm/schema';
 import vehiclesJson from '../../../world/vehicles.json';
+import { GameAudio, TempleSources, type AudioState } from './audio/Audio.ts';
 import { FollowCamera } from './camera/FollowCamera.ts';
 import { readConfig } from './config.ts';
 import { Input } from './input/Input.ts';
@@ -22,7 +23,7 @@ import { TileStreamer } from './world/TileStreamer.ts';
 import { NavGraph } from './traffic/NavGraph.ts';
 import { Traffic } from './traffic/Traffic.ts';
 
-interface KtmDebug { speed: number; speedKmh: number; driving: VehicleType | null; vehicles: number; trafficCount: number }
+interface KtmDebug { speed: number; speedKmh: number; driving: VehicleType | null; vehicles: number; trafficCount: number; audio?: AudioState; temples: number }
 declare global { interface Window { __ktmReady?: boolean; __ktm?: unknown; __ktmDebug?: KtmDebug } }
 
 const STEP = 1 / 60;
@@ -69,8 +70,13 @@ async function main(): Promise<void> {
   const input = new Input(renderer.domElement);
   const follow = new FollowCamera(camera, config.view);
   const hud = new Hud(document.getElementById('hud')!);
-  const debug: KtmDebug = { speed: 0, speedKmh: 0, driving: null, vehicles: 0, trafficCount: 0 };
+  const debug: KtmDebug = { speed: 0, speedKmh: 0, driving: null, vehicles: 0, trafficCount: 0, temples: 0 };
   window.__ktmDebug = debug;
+  // Sound stays silent until the first key or pointer press (browser autoplay rule).
+  const audio = new GameAudio(camera, scene, `${import.meta.env.BASE_URL}audio/`);
+  audio.armOnGesture();
+  debug.audio = audio.state;
+  const temples = new TempleSources();
 
   await streamer.update(start, true);
   // Without an explicit spawn, start on the street node nearest the tile centre rather than inside a block.
@@ -142,7 +148,7 @@ async function main(): Promise<void> {
   debug.driving = config.vehicle ?? null;
   await heroes.update(streamer.loaded());
   debug.trafficCount = traffic?.count ?? 0;
-  window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic };
+  window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic, audio, temples };
   // Warm-up: render until the frame time settles (pipeline compiles and temporal history allocation happen in
   // the first frames) before reporting ready, so the first driven frames are not one long stall.
   follow.update(0, config.vehicle ? vehicles[vehicles.length - 1]!.group.position : player.position, input, lookAt, yawTowards(start, lookAt));
@@ -208,6 +214,12 @@ async function main(): Promise<void> {
     const speed = car ? Math.abs(car.speedMs) : 0;
     debug.speed = speed; debug.speedKmh = msToKmh(speed); debug.driving = car ? car.type : null; debug.vehicles = vehicles.length;
     debug.trafficCount = traffic?.count ?? 0;
+    if (input.mutePressed) audio.toggleMute();
+    temples.sync(streamer.loaded().values());
+    const at = tileIndexAt(focus.x, focus.z);
+    const zone = inGrid(at.i, at.j) ? manifest.tiles[tileId(at.i, at.j)]?.zone : undefined;
+    audio.update(dt, { position: focus, zone, driving: car !== null, speedMs: speed, temples: temples.all, horn: input.hornPressed });
+    debug.audio = audio.state; debug.temples = temples.all.length;
     hud.update(dt, focus, clock.time, clock.paused, car ? msToKmh(car.speedMs) : undefined, traffic?.count);
     input.endFrame(!config.freeze && steps === 0);
     post.render();
