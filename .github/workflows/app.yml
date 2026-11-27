@@ -11,17 +11,28 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - id: cf
+        name: check Cloudflare token
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "::notice::no Cloudflare token: skipping deploy"; echo "present=false" >> $GITHUB_OUTPUT; else echo "present=true" >> $GITHUB_OUTPUT; fi
       - uses: actions/checkout@v4
+        if: steps.cf.outputs.present == 'true'
       - uses: oven-sh/setup-bun@v2
+        if: steps.cf.outputs.present == 'true'
         with: { bun-version: 1.4.4 }
       - run: bun install --frozen-lockfile
+        if: steps.cf.outputs.present == 'true'
       - name: build
+        if: steps.cf.outputs.present == 'true'
         env:
           VITE_WORLD_BASE_URL: ${{ vars.WORLD_BASE_URL }}
         run: |
           [ -n "$VITE_WORLD_BASE_URL" ] || { echo "::error::repository variable WORLD_BASE_URL is not set"; exit 1; }
           bun run build:app
       - name: deploy to Pages
+        if: steps.cf.outputs.present == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
