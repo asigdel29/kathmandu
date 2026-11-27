@@ -37,7 +37,7 @@ export function buildManifest(o: ManifestOptions): Manifest {
       if (!existsSync(p)) continue;
       const h = Hero.parse(JSON.parse(readFileSync(p, 'utf8')));
       if (!h.model) continue;
-      heroes[h.slug] = { tile: heroTile(h), url: `${o.baseUrl}heroes/${h.slug}/${h.model.sha256}/model.glb`, sha256: h.model.sha256 };
+      heroes[h.slug] = { tile: heroTile(h), url: `${o.baseUrl}heroes/${h.slug}/${h.model.sha256}/model.glb`, sha256: h.model.sha256, lat: h.lat, lon: h.lon, rotationDeg: h.rotationDeg, scale: h.scale };
     }
   }
   return Manifest.parse({

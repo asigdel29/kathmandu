@@ -1,0 +1,51 @@
+{
+  "slug": "pashupatinath",
+  "name": "Pashupatinath main temple + ghats",
+  "nameNe": "पशुपतिनाथ मन्दिर",
+  "tier": "A",
+  "lat": 27.7104647,
+  "lon": 85.3486653,
+  "rotationDeg": 0,
+  "scale": 1,
+  "tile": "x19_y18",
+  "footprint": [
+    [85.3483739, 27.7104961],
+    [85.34855, 27.7103772],
+    [85.3485641, 27.7103937],
+    [85.3488548, 27.7101973],
+    [85.3487684, 27.710096],
+    [85.348707, 27.7101374],
+    [85.3485317, 27.7099318],
+    [85.3485906, 27.709892],
+    [85.3485048, 27.7097914],
+    [85.3485954, 27.7096962],
+    [85.3487369, 27.7096232],
+    [85.3488624, 27.709748],
+    [85.3488845, 27.7098634],
+    [85.3489825, 27.7099784],
+    [85.349112, 27.7099363],
+    [85.3491243, 27.7099506],
+    [85.3491653, 27.7100136],
+    [85.3494974, 27.7105822],
+    [85.3494288, 27.7106286],
+    [85.3491725, 27.7105072],
+    [85.348835, 27.7107352],
+    [85.3487332, 27.7106159],
+    [85.3485664, 27.7107218],
+    [85.3483739, 27.7104961]
+  ],
+  "references": [
+    "https://commons.wikimedia.org/wiki/File:Pashupatinath_temple,kathmandu,Nepal.jpg",
+    "https://commons.wikimedia.org/wiki/File:Pashupatinath_temple.JPG",
+    "https://commons.wikimedia.org/wiki/File:Pashupatinath_Temple-2020.jpg",
+    "https://commons.wikimedia.org/wiki/File:Eastern_View_of_Pasupatinath_Temple_Area-Eastern_side-Bijay-IMG_3357.jpg",
+    "https://commons.wikimedia.org/wiki/File:Arya_ghat_(Cremation_place_for_Hindus)_in_Pashupatinath_-_panoramio.jpg",
+    "https://commons.wikimedia.org/wiki/File:Aaryaghat,_Bagmati_River,_Pashupati.jpg",
+    "https://commons.wikimedia.org/wiki/File:Bagmati_River_and_Pashupatinath.jpg",
+    "https://commons.wikimedia.org/wiki/File:Cremation_at_Bagmati_River_Bank,_Pashupatinath_Temple.jpg"
+  ],
+  "model": {
+    "sha256": "b04a6a82a2c183b77baaa66a1c466fa3bd40d5c75c8f923ed162ddd5f099049f",
+    "triangles": 22209
+  }
+}
