@@ -1,0 +1,49 @@
+{
+  "slug": "boudhanath",
+  "name": "Boudhanath Stupa",
+  "nameNe": "बौद्धनाथ स्तूप",
+  "tier": "A",
+  "lat": 27.7214711,
+  "lon": 85.3619721,
+  "rotationDeg": 9.5,
+  "scale": 1,
+  "tile": "x21_y19",
+  "model": {
+    "sha256": "2d65eeb3742add48831c342bd6c38d06cf8e7d484d1053a313f30102d8c1667a",
+    "triangles": 31734
+  },
+  "footprint": [
+    [85.3615346, 27.721342],
+    [85.361607, 27.7213319],
+    [85.3615854, 27.7212149],
+    [85.3617026, 27.7212027],
+    [85.3616956, 27.7211556],
+    [85.3621125, 27.7210964],
+    [85.3621178, 27.7211345],
+    [85.3622482, 27.7211133],
+    [85.3622632, 27.7212268],
+    [85.3623401, 27.721216],
+    [85.3624092, 27.7215807],
+    [85.3623336, 27.7215921],
+    [85.3623497, 27.721705],
+    [85.3622306, 27.7217282],
+    [85.3622427, 27.7218017],
+    [85.3618301, 27.7218641],
+    [85.3618146, 27.7217824],
+    [85.361698, 27.7218003],
+    [85.3616761, 27.7216927],
+    [85.3615941, 27.721704],
+    [85.3615346, 27.721342]
+  ],
+  "references": [
+    "https://commons.wikimedia.org/wiki/File:Boudha_Stupa_2018_04.jpg",
+    "https://commons.wikimedia.org/wiki/File:Boudhanath_Stupa-IMG_7048.jpg",
+    "https://commons.wikimedia.org/wiki/File:Boudhanath_Stupa-26.jpg",
+    "https://commons.wikimedia.org/wiki/File:Boudha_Stupa_or_Boudhanath_Stupa.jpg",
+    "https://commons.wikimedia.org/wiki/File:Boudhanath_Buddhist_stup_panorama.jpg",
+    "https://commons.wikimedia.org/wiki/File:Boudhanath_Stupa-21.jpg",
+    "https://commons.wikimedia.org/wiki/File:Boudhanath_Stupa123.jpg",
+    "https://commons.wikimedia.org/wiki/File:Boudhanath_Stupa_view_from_Kapan_Height-IMG_9815.jpg",
+    "https://commons.wikimedia.org/wiki/File:20110725_Budha_eyes_closeup_Bodhnath_Stupa_Kathmandu_Nepal.jpg"
+  ]
+}
