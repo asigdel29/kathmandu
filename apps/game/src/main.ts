@@ -7,8 +7,10 @@ import { FollowCamera } from './camera/FollowCamera.ts';
 import { readConfig } from './config.ts';
 import { Input } from './input/Input.ts';
 import { createFacadeMaterial, createNightUniform } from './materials/facade.ts';
+import { uniform } from 'three/tsl';
 import { Physics } from './physics/Physics.ts';
 import { Character } from './player/Character.ts';
+import { IdleTracker, wetness } from './post/quality.ts';
 import { createRenderer } from './renderer.ts';
 import { Hud } from './ui/Hud.ts';
 import { fallbackSpawns, fixedSteps, nearestWithin, propSpawns, yawTowards } from './vehicles/Garage.ts';
@@ -46,16 +48,17 @@ async function main(): Promise<void> {
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0xd9c7a8, 0.00012);
   const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 20000);
-  const { renderer, post } = await createRenderer(scene, camera);
+  const night = createNightUniform();
+  const { renderer, post } = await createRenderer(scene, camera, night, { quality: config.quality, taa: config.taa });
   document.body.appendChild(renderer.domElement);
 
   const sky = new Sky(scene, renderer, config.timeOfDay);
   const physics = await Physics.create();
   const clock = new Clock(config.timeOfDay, { frozen: config.freeze });
-  const night = createNightUniform();
   night.value = nightAmount(clock.time);
+  const wet = uniform(wetness(config.wet, night.value));
   const facade = createFacadeMaterial(night);
-  const loader = new TileLoader(config.worldBase, manifest, facade);
+  const loader = new TileLoader(config.worldBase, manifest, facade, wet);
   const props = new PropsRenderer(scene, night);
   const streetLights = new StreetLights(scene, () => props.lamps());
   const streamer = new TileStreamer(scene, physics, props, loader);
@@ -150,7 +153,7 @@ async function main(): Promise<void> {
   debug.driving = config.vehicle ?? null;
   await heroes.update(streamer.loaded());
   debug.trafficCount = traffic?.count ?? 0;
-  window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic, audio, temples, streetLights };
+  window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic, audio, temples, streetLights, post };
   streetLights.update(1, start, night.value); // lamps on before the first render, so the lit pipelines are compiled in the warm-up
   // Warm-up: render until the frame time settles (pipeline compiles and temporal history allocation happen in
   // the first frames) before reporting ready, so the first driven frames are not one long stall.
@@ -162,6 +165,7 @@ async function main(): Promise<void> {
     const now = performance.now(); const took = now - prevFrame; prevFrame = now;
     if (i >= 2 && took < WARM_FRAME_MS) break;
   }
+  post.warm(); // compile the depth-of-field and driving-blur variants now rather than mid-play
   window.__ktmReady = true;
 
   let autodriveLeft = config.autodrive ? AUTODRIVE_S : 0;
@@ -169,6 +173,9 @@ async function main(): Promise<void> {
   let acc = 0;
   let last = performance.now();
   const focus = new THREE.Vector3();
+  const idle = new IdleTracker();
+  const prevFocus = new THREE.Vector3().copy(start);
+  const prevCamQ = new THREE.Quaternion();
   const frame = (now: number) => {
     // Physics runs in fixed steps; the clock follows wall time so slow frames do not slow the day.
     const frameDt = Math.max(0, (now - last) / 1000);
@@ -211,6 +218,7 @@ async function main(): Promise<void> {
     clock.advance(frameDt);
     sky.setTime(clock.time);
     night.value = nightAmount(clock.time);
+    wet.value = wetness(config.wet, night.value);
     sky.update(focus);
     streetLights.update(frameDt, focus, night.value);
     void streamer.update(focus);
@@ -225,7 +233,12 @@ async function main(): Promise<void> {
     audio.update(dt, { position: focus, zone, driving: car !== null, speedMs: speed, temples: temples.all, horn: input.hornPressed });
     debug.audio = audio.state; debug.temples = temples.all.length;
     hud.update(dt, focus, clock.time, clock.paused, car ? msToKmh(car.speedMs) : undefined, traffic?.count);
+    // Idle = the player and the camera are both still (depth of field fades in after 3 s of that).
+    const moving = focus.distanceTo(prevFocus) > 0.05 * Math.max(frameDt, 1e-3) || camera.quaternion.angleTo(prevCamQ) > 1e-4 || input.lookDelta.x !== 0 || input.lookDelta.y !== 0;
+    idle.update(frameDt, moving);
+    prevFocus.copy(focus); prevCamQ.copy(camera.quaternion);
     input.endFrame(!config.freeze && steps === 0);
+    post.update({ focusDistance: camera.position.distanceTo(focus), idleSeconds: idle.seconds, driving: car !== null, speedKmh: car ? msToKmh(speed) : 0, followCamera: config.view === 'follow', night: night.value }, frameDt * 1000);
     post.render();
   };
   renderer.setAnimationLoop(frame);

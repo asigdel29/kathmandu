@@ -71,7 +71,7 @@ export function createFacadeMaterial(night: UniformNode<'float'>): THREE.MeshSta
 
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.colorNode = colorNode;
-  mat.roughnessNode = mix(float(0.85), float(0.35), windowMask);
+  mat.roughnessNode = mix(float(0.85), float(0.28), windowMask);
   mat.metalnessNode = float(0);
   mat.emissiveNode = vec3(1.0, 0.55, 0.22).mul(night).mul(lit).mul(glow).mul(WINDOW_EMISSIVE);
   return mat;
