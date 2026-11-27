@@ -9,6 +9,7 @@ import { createFacadeMaterial, createNightUniform } from './materials/facade.ts'
 import { Physics } from './physics/Physics.ts';
 import { Character } from './player/Character.ts';
 import { createRenderer } from './renderer.ts';
+import { loadResume, type SaveData, type SaveStorage, startAutosave } from './state/Save.ts';
 import { Hud } from './ui/Hud.ts';
 import { fallbackSpawns, fixedSteps, nearestWithin, propSpawns, yawTowards } from './vehicles/Garage.ts';
 import { msToKmh, Vehicle } from './vehicles/Vehicle.ts';
@@ -35,9 +36,20 @@ const ENTER_RADIUS_M = 3;
 const AUTODRIVE_S = 5;
 const CAPSULE_LIFT_M = 1.2;
 const LOST_BELOW_Y = -500;
+const RESUME_LOOK_M = 20;
+
+/** localStorage, or an inert stand-in where the browser denies access to it. */
+function saveStorage(): SaveStorage {
+  try { return window.localStorage; } catch { return { getItem: () => null, setItem: () => {}, removeItem: () => {} }; }
+}
 
 async function main(): Promise<void> {
   const config = readConfig(location.search, import.meta.env.VITE_WORLD_BASE_URL ?? '/world/');
+  // The last session's position, time and vehicle, except where the URL names them explicitly.
+  const storage = saveStorage();
+  const resume = loadResume(storage, location.search);
+  const timeOfDay = resume.timeOfDay ?? config.timeOfDay;
+  const startVehicle = config.vehicle ?? resume.vehicle;
   const manifest = await loadManifest(config.worldBase);
   const tunings = VehicleTunings.parse(vehiclesJson);
 
@@ -47,9 +59,9 @@ async function main(): Promise<void> {
   const { renderer, post } = await createRenderer(scene, camera);
   document.body.appendChild(renderer.domElement);
 
-  const sky = new Sky(scene, config.timeOfDay);
+  const sky = new Sky(scene, timeOfDay);
   const physics = await Physics.create();
-  const clock = new Clock(config.timeOfDay, { frozen: config.freeze });
+  const clock = new Clock(timeOfDay, { frozen: config.freeze });
   const night = createNightUniform();
   night.value = nightAmount(clock.time);
   const facade = createFacadeMaterial(night);
@@ -63,7 +75,7 @@ async function main(): Promise<void> {
   const o = tileOrigin(config.tile);
   const centre = new THREE.Vector3(o.x + TILE_SIZE_M / 2, 0, o.z + TILE_SIZE_M / 2);
   // A hero target overrides tile centre and spawn: start just south of its anchor, facing it.
-  const spawn = target ? heroSpawn(target) : config.spawn;
+  const spawn = target ? heroSpawn(target) : config.spawn ?? resume.position;
   const start = new THREE.Vector3(spawn?.x ?? centre.x, 200, spawn?.z ?? centre.z);
   const player = new Character(scene, physics, start);
   const input = new Input(renderer.domElement);
@@ -77,6 +89,12 @@ async function main(): Promise<void> {
   // The street view then looks down the longest road leaving that node.
   const anchor = target ? lonLatToLocal(target.lon, target.lat) : undefined;
   const lookAt = anchor ? new THREE.Vector3(anchor.x, 0, anchor.z) : centre.clone();
+  // A resumed session faces the way it was facing when saved.
+  if (!target && !config.spawn && resume.position) {
+    const h = resume.position.heading;
+    lookAt.set(start.x + Math.sin(h) * RESUME_LOOK_M, 0, start.z + Math.cos(h) * RESUME_LOOK_M);
+    player.heading = h;
+  }
   const nav = streamer.loaded().get(config.tile)?.nav;
   if (!spawn && nav) {
     let best = Infinity; let startId = '';
@@ -127,8 +145,8 @@ async function main(): Promise<void> {
     player.setActive(true);
     follow.setMode('foot', v.yaw);
   };
-  if (config.vehicle) {
-    const v = new Vehicle(scene, physics, config.vehicle, tunings.vehicles[config.vehicle], new THREE.Vector3(start.x, groundY(start.x, start.z), start.z), yawTowards(start, lookAt));
+  if (startVehicle) {
+    const v = new Vehicle(scene, physics, startVehicle, tunings.vehicles[startVehicle], new THREE.Vector3(start.x, groundY(start.x, start.z), start.z), yawTowards(start, lookAt));
     vehicles.push(v);
     enter(v);
   }
@@ -139,13 +157,13 @@ async function main(): Promise<void> {
   player.teleport(start.x, groundY(start.x, start.z) + CAPSULE_LIFT_M, start.z);
   for (const v of vehicles) v.syncVisual(STEP);
   debug.vehicles = vehicles.length;
-  debug.driving = config.vehicle ?? null;
+  debug.driving = startVehicle ?? null;
   await heroes.update(streamer.loaded());
   debug.trafficCount = traffic?.count ?? 0;
   window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic };
   // Warm-up: render until the frame time settles (pipeline compiles and temporal history allocation happen in
   // the first frames) before reporting ready, so the first driven frames are not one long stall.
-  follow.update(0, config.vehicle ? vehicles[vehicles.length - 1]!.group.position : player.position, input, lookAt, yawTowards(start, lookAt));
+  follow.update(0, startVehicle ? vehicles[vehicles.length - 1]!.group.position : player.position, input, lookAt, yawTowards(start, lookAt));
   let prevFrame = performance.now();
   for (let i = 0; i < 12; i++) {
     post.render();
@@ -154,6 +172,14 @@ async function main(): Promise<void> {
     if (i >= 2 && took < WARM_FRAME_MS) break;
   }
   window.__ktmReady = true;
+
+  // Autosave every few seconds and whenever the tab is hidden or shown again.
+  const snapshot = (): SaveData => {
+    const car: Vehicle | null = driving;
+    const p = car ? car.group.position : player.position;
+    return { version: 1, x: p.x, y: p.y, z: p.z, heading: car ? car.yaw : player.heading, timeOfDay: clock.time, vehicle: car ? car.type : null, savedAt: Date.now() };
+  };
+  startAutosave({ storage, snapshot, target: document });
 
   let autodriveLeft = config.autodrive ? AUTODRIVE_S : 0;
   input.autodrive = autodriveLeft > 0;
