@@ -77,9 +77,31 @@ export function templeSourcesFromTile(tile: Pick<LoadedTile, 'buildings'>): THRE
     const sty = mesh.geometry.getAttribute('_style');
     if (!pos || !sty) continue;
     mesh.updateWorldMatrix(true, false);
-    for (const c of templeCentroids(pos.array, sty.array)) out.push(new THREE.Vector3(c.x, c.y, c.z).applyMatrix4(mesh.matrixWorld));
+    // glb buffers are often strided (InterleavedBufferAttribute), so read through the accessors, not `.array`.
+    const n = Math.min(pos.count, sty.count);
+    const p = new Float32Array(n * 3); const s = new Float32Array(n);
+    for (let i = 0; i < n; i++) { p[i * 3] = pos.getX(i); p[i * 3 + 1] = pos.getY(i); p[i * 3 + 2] = pos.getZ(i); s[i] = sty.getX(i); }
+    for (const c of templeCentroids(p, s)) out.push(new THREE.Vector3(c.x, c.y, c.z).applyMatrix4(mesh.matrixWorld));
   }
   return out;
+}
+
+/** Bell sources of the loaded tiles, computed once per tile and dropped when the tile unloads. */
+export class TempleSources {
+  private byTile = new Map<string, THREE.Vector3[]>();
+  all: THREE.Vector3[] = [];
+
+  sync(tiles: Iterable<{ id: string; buildings?: THREE.Mesh[] | undefined }>): void {
+    const seen = new Set<string>();
+    let changed = false;
+    for (const t of tiles) {
+      if (!t.buildings) continue;
+      seen.add(t.id);
+      if (!this.byTile.has(t.id)) { this.byTile.set(t.id, templeSourcesFromTile(t)); changed = true; }
+    }
+    for (const id of this.byTile.keys()) if (!seen.has(id)) { this.byTile.delete(id); changed = true; }
+    if (changed) this.all = [...this.byTile.values()].flat();
+  }
 }
 
 /** Nearest source within `maxM` of `p`, if any. */

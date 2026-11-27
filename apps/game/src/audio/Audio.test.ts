@@ -1,6 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { describe, expect, it } from 'vitest';
-import { AMBIENCES, ambienceForZone, crossfadeWeights, engineRate, nearestSource, nextBellDelay, templeCentroids, type Ambience, type Weights } from './Audio.ts';
+import { AMBIENCES, ambienceForZone, crossfadeWeights, engineRate, nearestSource, nextBellDelay, templeCentroids, TempleSources, type Ambience, type Weights } from './Audio.ts';
 
 const sum = (w: Weights) => AMBIENCES.reduce((s, a) => s + w[a], 0);
 
@@ -77,6 +77,37 @@ describe('templeCentroids', () => {
     expect(c[0]).toEqual({ x: 102, y: 5, z: 102 });
     expect(c[1]).toEqual({ x: 305, y: 0, z: 405 });
     expect(templeCentroids([0, 0, 0], [0])).toEqual([]);
+  });
+});
+
+describe('TempleSources', () => {
+  const tile = (id: string, ox: number, style: number) => {
+    const group = new THREE.Group(); group.position.set(ox, 0, 0);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute([1, 0, 1, 3, 10, 3], 3));
+    g.setAttribute('_style', new THREE.Float32BufferAttribute([style, style], 1));
+    const mesh = new THREE.Mesh(g); group.add(mesh);
+    return { id, buildings: [mesh] };
+  };
+  it('collects world-space sources per tile and drops unloaded tiles', () => {
+    const t = new TempleSources();
+    t.sync([tile('a', 800, 6), tile('b', 0, 0)]);
+    expect(t.all).toHaveLength(1);
+    expect(t.all[0]!.toArray()).toEqual([802, 5, 2]);
+    t.sync([tile('b', 0, 0)]);
+    expect(t.all).toHaveLength(0);
+    t.sync([{ id: 'c', buildings: undefined }]);
+    expect(t.all).toHaveLength(0);
+  });
+  it('reads interleaved position attributes as loaded from glb', () => {
+    const t = new TempleSources();
+    const g = new THREE.BufferGeometry();
+    // xyz + one padding float per vertex, as a strided glb buffer view
+    const buf = new THREE.InterleavedBuffer(new Float32Array([1, 0, 1, 9, 3, 10, 3, 9]), 4);
+    g.setAttribute('position', new THREE.InterleavedBufferAttribute(buf, 3, 0));
+    g.setAttribute('_style', new THREE.Float32BufferAttribute([6, 6], 1));
+    t.sync([{ id: 'd', buildings: [new THREE.Mesh(g)] }]);
+    expect(t.all.map((v) => v.toArray())).toEqual([[2, 5, 2]]);
   });
 });
 
