@@ -3,6 +3,7 @@ import { abs, attribute, clamp, float, floor, fract, hash, int, max, min, mix, n
 import type { UniformNode } from 'three/webgpu';
 import { loadFacadeTextures } from './facadeTextureLoader.ts';
 import { FLAT_ROOF_INDEX, STYLE_IS_BRICK, STYLE_TILING_M, STYLE_TINT, TILE_ROOF_INDEX } from './facadeTextures.ts';
+import { WINDOW_EMISSIVE } from '../world/lighting.ts';
 
 const FLOOR_PITCH = 3.1;
 const WINDOW_PITCH = 3.5;
@@ -82,6 +83,8 @@ export function createFacadeMaterial(night: UniformNode<'float'>, base: string =
   const colRand = hash(column.add(streakSeed.mul(31)).abs());
   const streakOn = inRange(fu, WIN_U0 - 0.02, WIN_U1 + 0.02).mul(step(0.4, colRand)).mul(float(1).sub(step(streakLen, below))).mul(step(1, sillRow));
   const grime = streakOn.mul(float(1).sub(below.div(streakLen))).mul(colRand).mul(0.8).mul(wall);
+  // Each lit window gets its own brightness and a vertical falloff, so the night facade is not a grid of identical flat rectangles.
+  const glow = mix(float(0.55), float(1), hash(cellSeed.abs().add(977))).mul(mix(float(1), float(0.6), clamp(fv.sub(0.3).div(0.48), 0, 1)));
 
   // --- shading ---------------------------------------------------------------------------------
   const groundBand = ground.mul(wall).mul(0.15);
@@ -113,7 +116,7 @@ export function createFacadeMaterial(night: UniformNode<'float'>, base: string =
   mat.normalNode = normalMap(mix(norS.rgb, vec3(0.5, 0.5, 1.0), windowMask.add(shutterMask.mul(0.7)).clamp(0, 1)), vec2(1, 1));
   mat.roughnessNode = mix(mix(roughS.r, float(0.6), max(frameMask, shutterMask.mul(0.5))), float(0.12), glassMask);
   mat.metalnessNode = select(styleIdx.equal(TIN_INDEX).and(wall.greaterThan(0.5)), float(0.35), float(0));
-  mat.emissiveNode = vec3(1.0, 0.75, 0.4).mul(night).mul(lit);
+  mat.emissiveNode = vec3(1.0, 0.55, 0.22).mul(night).mul(lit).mul(glow).mul(WINDOW_EMISSIVE);
   mat.userData.texturesReady = textures.ready;
   return mat;
 }

@@ -30,3 +30,18 @@ PBR texture sets from Poly Haven, released under the Creative Commons CC0 1.0 Un
 | `temple_brick` | https://polyhaven.com/a/church_bricks_02 (Church Bricks 02) | Rob Tuytel | CC0 1.0 | colour map converted from PNG to JPEG, re-encoded JPEG, roughness map halved to 512² |
 | `institutional` | https://polyhaven.com/a/beige_wall_001 (Beige Wall 001) | Dimitrios Savva, Rico Cilliers | CC0 1.0 | re-encoded JPEG, roughness map halved to 512²; tinted per style at runtime |
 | `tile_roof` | https://polyhaven.com/a/clay_roof_tiles_03 (Clay Roof Tiles 03) | Amal Kumar | CC0 1.0 | re-encoded JPEG, roughness map halved to 512² |
+
+## Ground textures
+
+Surface photographs from Poly Haven, released under the Creative Commons CC0 1.0 Universal public domain dedication (https://creativecommons.org/publicdomain/zero/1.0/). Attribution is not required; the authors are listed here anyway. Files live in `apps/game/public/textures/`; each is the 1k (1024 × 1024) diffuse map, re-encoded as progressive JPEG at quality 84. They are sampled in `apps/game/src/materials/terrain.ts` and `road.ts`.
+
+| File | Used for | Source | Author | Licence |
+|---|---|---|---|---|
+| `terrain-dust.jpg` | dusty valley ground (default) | https://polyhaven.com/a/dry_ground_01 | Rob Tuytel | CC0 1.0 |
+| `terrain-grass.jpg` | grass, parks, scrub | https://polyhaven.com/a/rocky_terrain_02 | Amal Kumar | CC0 1.0 |
+| `terrain-farm.jpg` | farmland | https://polyhaven.com/a/farm_soil | Amal Kumar | CC0 1.0 |
+| `terrain-forest.jpg` | forest floor | https://polyhaven.com/a/forest_ground_04 | Rob Tuytel (photography, processing), Rico Cilliers (minor adjustment) | CC0 1.0 |
+| `terrain-rock.jpg` | slopes steeper than 35° | https://polyhaven.com/a/rock_face_03 | Dario Barresi (photography), Rico Cilliers (processing) | CC0 1.0 |
+| `road-asphalt.jpg` | asphalt roads | https://polyhaven.com/a/asphalt_02 | Rob Tuytel | CC0 1.0 |
+| `road-dirt.jpg` | unpaved roads, paths outside the `*-core` zones | https://polyhaven.com/a/dirt_floor | eye-candy.xyz | CC0 1.0 |
+| `road-cobble.jpg` | paths in the `*-core` zones | https://polyhaven.com/a/cobblestone_floor_01 | Rob Tuytel | CC0 1.0 |
