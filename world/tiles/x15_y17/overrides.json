@@ -1,0 +1,549 @@
+{
+  "zone": "old-core",
+  "defaultLevels": 4,
+  "buildings": {
+    "a5006807": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Himali Advertising Agency (P) Ltd"
+    },
+    "a9698909": {
+      "style": "rcc_plaster_white",
+      "roof": "flat"
+    },
+    "a224234114": {
+      "style": "institutional",
+      "roof": "flat",
+      "name": "Metropolitan Police Commissioner’s Office"
+    },
+    "a224234124": {
+      "style": "institutional",
+      "roof": "flat",
+      "name": "National Trauma Center"
+    },
+    "a224897140": {
+      "style": "temple_brick",
+      "roof": "pitched",
+      "levels": 2,
+      "name": "Bal Gopaleshwar Mahadev (Rani Pokhari temple)"
+    },
+    "a225309604": {
+      "style": "institutional",
+      "roof": "flat",
+      "name": "Tindhara Pathshala"
+    },
+    "a252367774": {
+      "style": "institutional",
+      "roof": "flat",
+      "levels": 3,
+      "name": "Rastriya Naach Ghar"
+    },
+    "a271485098": {
+      "style": "institutional",
+      "roof": "flat",
+      "levels": 3
+    },
+    "a338884984": {
+      "style": "institutional",
+      "roof": "flat",
+      "levels": 3,
+      "name": "Bishwa Jyoti Hall"
+    },
+    "a338884994": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a338889220": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a338889226": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a362848914": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Nepal Airlines Coperation"
+    },
+    "a372297482": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Jame Market"
+    },
+    "a372297500": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a389489242": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Ghantaghar"
+    },
+    "a389492472": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Natraj Trekking"
+    },
+    "a401759422": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "601 Soft"
+    },
+    "a401759424": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "O'seas Academy (OLC)"
+    },
+    "a401759430": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Extra International Educational Consultancy"
+    },
+    "a401781276": {
+      "style": "temple_brick",
+      "roof": "pitched",
+      "levels": 2,
+      "name": "Dharma Chakra Vihar"
+    },
+    "a401781306": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Academy for IT Engineering"
+    },
+    "a401781330": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Academy for IT Engineering"
+    },
+    "a401781334": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Education First Pvt. Ltd"
+    },
+    "a401781358": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Yellowpage Nepal Pvt. Ltd"
+    },
+    "a401781378": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Hub International Education Pvt. Ltd"
+    },
+    "a406867186": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a406867198": {
+      "style": "commercial_glass",
+      "roof": "flat"
+    },
+    "a406867386": {
+      "style": "temple_brick",
+      "roof": "pitched",
+      "levels": 2,
+      "name": "boudha chaitya"
+    },
+    "a406867456": {
+      "style": "institutional",
+      "roof": "flat",
+      "name": "gandarbha sangit bidhyalaya"
+    },
+    "a412133016": {
+      "remove": true
+    },
+    "a412133018": {
+      "remove": true
+    },
+    "a412133024": {
+      "style": "commercial_glass",
+      "roof": "flat",
+      "name": "Nepal investment bank"
+    },
+    "a412133042": {
+      "remove": true
+    },
+    "a412133714": {
+      "remove": true
+    },
+    "a412135096": {
+      "remove": true
+    },
+    "a412156640": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a413704094": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a413705284": {
+      "style": "commercial_glass",
+      "roof": "flat",
+      "name": "NCC Bank"
+    },
+    "a413805492": {
+      "style": "institutional",
+      "roof": "flat",
+      "name": "Shri Tribhuwan Chandra Sainik Hospital"
+    },
+    "a413812224": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Kamaladi Complex"
+    },
+    "a413812226": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "एनआइसी एशिया बैंक लिमिटेड"
+    },
+    "a430091230": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a430091254": {
+      "style": "commercial_glass",
+      "roof": "flat"
+    },
+    "a438145604": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Corona International Education"
+    },
+    "a442090882": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a442090886": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a442090888": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a442095536": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a442095538": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a442095540": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a442101146": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a442101148": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a442101150": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a442101152": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a442412530": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a443380928": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a443388514": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a443388518": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a443454896": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Blue Cross Diagnostic Center"
+    },
+    "a443454898": {
+      "style": "institutional",
+      "roof": "flat",
+      "name": "Kathmandu Model Hospital Dental Department"
+    },
+    "a443454902": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a443454904": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a443504292": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a443504294": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a443504296": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a443504310": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a443641054": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a463258086": {
+      "style": "institutional",
+      "roof": "flat",
+      "name": "Anmol Medical Center"
+    },
+    "a476855810": {
+      "style": "commercial_glass",
+      "roof": "flat",
+      "name": "Rising Mall"
+    },
+    "a476855872": {
+      "style": "commercial_glass",
+      "roof": "flat"
+    },
+    "a476855882": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "CS InfoTech Pvt. Ltd"
+    },
+    "a476855948": {
+      "style": "commercial_glass",
+      "roof": "flat",
+      "name": "Taj Mahal"
+    },
+    "a476855954": {
+      "style": "commercial_glass",
+      "roof": "flat",
+      "name": "Rising Mall"
+    },
+    "a476856828": {
+      "style": "commercial_glass",
+      "roof": "flat",
+      "name": "Prabhu Bank"
+    },
+    "a477383944": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "It Sutra Pvt Ltd"
+    },
+    "a478057500": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Hotel Pacific Pvt.Ltd"
+    },
+    "a478057512": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Chamber Bhavan"
+    },
+    "a479069436": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Mayalu Center"
+    },
+    "a491494804": {
+      "style": "rcc_plaster_white",
+      "roof": "flat"
+    },
+    "a491495554": {
+      "style": "commercial_glass",
+      "roof": "flat",
+      "name": "Devtec Nepal P. Ltd"
+    },
+    "a573878706": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Eplanet Pvt. Ltd"
+    },
+    "a573881912": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Sajha Bhawan"
+    },
+    "a601268584": {
+      "style": "institutional",
+      "roof": "flat",
+      "name": "Durbar High School"
+    },
+    "a605058394": {
+      "style": "rcc_plaster_white",
+      "levels": 2,
+      "roof": "flat",
+      "name": "Mahabouddha Stupa"
+    },
+    "a610100272": {
+      "style": "institutional",
+      "roof": "flat",
+      "name": "UNIVERSAL COLLEGE OF MEDICAL SCIENCES & UCMS COLLEGE OF DENTAL SURGERY"
+    },
+    "a651761900": {
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Hotel Woodland"
+    },
+    "a681089610": {
+      "style": "rcc_plaster_white",
+      "roof": "flat"
+    },
+    "a682671110": {
+      "style": "commercial_glass",
+      "roof": "flat"
+    },
+    "a683593340": {
+      "remove": true
+    },
+    "a683896830": {
+      "style": "rcc_plaster_white",
+      "roof": "flat"
+    },
+    "a702446694": {
+      "style": "temple_brick",
+      "roof": "pitched",
+      "levels": 2,
+      "name": "Kamaladi Ganesh"
+    },
+    "a990731182": {
+      "style": "temple_brick",
+      "roof": "pitched",
+      "levels": 2
+    },
+    "a991271642": {
+      "style": "commercial_glass",
+      "roof": "flat",
+      "name": "Prabhu Bank"
+    },
+    "a992782348": {
+      "style": "institutional",
+      "roof": "flat",
+      "name": "Tyod Secondary School"
+    },
+    "a992792250": {
+      "remove": true
+    },
+    "a1004631526": {
+      "style": "commercial_glass",
+      "roof": "flat",
+      "name": "Prabhu bank"
+    },
+    "a1039827060": {
+      "style": "rcc_plaster_white",
+      "roof": "flat"
+    },
+    "a1039827068": {
+      "style": "rcc_plaster_white",
+      "roof": "flat"
+    },
+    "a1039827070": {
+      "style": "rcc_plaster_white",
+      "roof": "flat"
+    },
+    "a1039844712": {
+      "style": "commercial_glass",
+      "roof": "flat"
+    },
+    "a1039861690": {
+      "style": "commercial_glass",
+      "roof": "flat"
+    },
+    "a1041516928": {
+      "style": "rcc_plaster_white",
+      "roof": "flat"
+    },
+    "a1347106982": {
+      "style": "commercial_glass",
+      "roof": "flat"
+    },
+    "a1811735146": {
+      "remove": true
+    },
+    "a1811735266": {
+      "remove": true
+    },
+    "a1813203672": {
+      "remove": true
+    },
+    "a1813214264": {
+      "remove": true
+    },
+    "a1813214266": {
+      "remove": true
+    },
+    "a1813214270": {
+      "remove": true
+    },
+    "a1813214276": {
+      "remove": true
+    },
+    "a1813214282": {
+      "remove": true
+    },
+    "a1813214296": {
+      "remove": true
+    },
+    "a1813214300": {
+      "remove": true
+    },
+    "a1813214302": {
+      "remove": true
+    },
+    "a1813214304": {
+      "remove": true
+    },
+    "a1813214308": {
+      "remove": true
+    },
+    "a1813214320": {
+      "remove": true
+    },
+    "a2059913634": {
+      "remove": true
+    },
+    "a2357450580": {
+      "remove": true
+    },
+    "a2500471910": {
+      "remove": true
+    },
+    "a2552073146": {
+      "remove": true
+    },
+    "a2747417166": {
+      "style": "commercial_glass",
+      "roof": "flat"
+    },
+    "a2791926362": {
+      "remove": true
+    },
+    "a2819447824": {
+      "style": "commercial_glass",
+      "roof": "flat",
+      "name": "Skywalk Tower"
+    },
+    "a2826399956": {
+      "style": "temple_brick",
+      "roof": "flat",
+      "height": 0.9,
+      "name": "Rani Pokhari causeway"
+    }
+  },
+  "roads": {},
+  "notes": "Bhotahity, Asan, Ratna Park, Rani Pokhari, Ghantaghar and Kamaladi. Temples get brick style and pitched roofs; hospitals, schools, colleges, police and theatres are institutional; towers and banks are glass or white plaster; slivers under 8 m2, a gatehouse, a house footprint and a bridge box that sit on roads are removed; the Rani Pokhari causeway is a low brick slab."
+}

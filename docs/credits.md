@@ -14,3 +14,18 @@ All sounds are released under the Creative Commons CC0 1.0 Universal public doma
 | `engine-loop.mp3` | Car engine loop; playback rate follows vehicle speed | https://opengameart.org/content/racing-car-engine-sound-loops (`loop_0.wav`) | domasx2 (cut from a public-domain pdsounds.org recording) | CC0 1.0 | loudness normalised, re-encoded |
 | `horn.mp3` | Car horn, double honk | https://freesound.org/people/DeVern/sounds/349922/ ("Car Horn Honk.wav") | DeVern | CC0 1.0 | 1.42–3.10 s excerpt, short fades, loudness normalised, mono |
 | `temple-bell.mp3` | Temple bell at the Pashupatinath old-age home, Kathmandu | https://freesound.org/people/pashupati_007/sounds/199901/ ("bell_rings.mp3") | pashupati_007 | CC0 1.0 | single strike from 11.0 s, 7 s with 2 s fade-out, loudness normalised |
+
+## Ground textures
+
+Surface photographs from Poly Haven, released under the Creative Commons CC0 1.0 Universal public domain dedication (https://creativecommons.org/publicdomain/zero/1.0/). Attribution is not required; the authors are listed here anyway. Files live in `apps/game/public/textures/`; each is the 1k (1024 × 1024) diffuse map, re-encoded as progressive JPEG at quality 84. They are sampled in `apps/game/src/materials/terrain.ts` and `road.ts`.
+
+| File | Used for | Source | Author | Licence |
+|---|---|---|---|---|
+| `terrain-dust.jpg` | dusty valley ground (default) | https://polyhaven.com/a/dry_ground_01 | Rob Tuytel | CC0 1.0 |
+| `terrain-grass.jpg` | grass, parks, scrub | https://polyhaven.com/a/rocky_terrain_02 | Amal Kumar | CC0 1.0 |
+| `terrain-farm.jpg` | farmland | https://polyhaven.com/a/farm_soil | Amal Kumar | CC0 1.0 |
+| `terrain-forest.jpg` | forest floor | https://polyhaven.com/a/forest_ground_04 | Rob Tuytel (photography, processing), Rico Cilliers (minor adjustment) | CC0 1.0 |
+| `terrain-rock.jpg` | slopes steeper than 35° | https://polyhaven.com/a/rock_face_03 | Dario Barresi (photography), Rico Cilliers (processing) | CC0 1.0 |
+| `road-asphalt.jpg` | asphalt roads | https://polyhaven.com/a/asphalt_02 | Rob Tuytel | CC0 1.0 |
+| `road-dirt.jpg` | unpaved roads, paths outside the `*-core` zones | https://polyhaven.com/a/dirt_floor | eye-candy.xyz | CC0 1.0 |
+| `road-cobble.jpg` | paths in the `*-core` zones | https://polyhaven.com/a/cobblestone_floor_01 | Rob Tuytel | CC0 1.0 |
