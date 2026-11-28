@@ -10,7 +10,7 @@ import { PATHS } from '../paths.ts';
 import { defaultLevels, pickStyle, styleIndex, zoneAt, type Zone } from '../style/style.ts';
 import { buildingHeight, extrudeBuilding, roofKind } from './buildings.ts';
 import { flattenUnderRoads, meshHeightAt, type RoadLine } from './flatten.ts';
-import { alongPolyline, pointInRing, roofProps, treesInRing, type XZ } from './props.ts';
+import { alongPolyline, facadeIndex, pointInRing, powerSpans, roofProps, shutterProps, treesInRing, type XZ } from './props.ts';
 import { ROAD_LIFT, ROAD_SAMPLE_M, navNodeId, ribbon, roadSpec, sampleRoad, type RoadSpec } from './roads.ts';
 import { LANDCOVER, terrainMesh, type GreenArea } from './terrain.ts';
 import { waterMesh } from './water.ts';
@@ -175,6 +175,7 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
   // 7. buildings
   const walls = new MeshBuilder(), roofs = new MeshBuilder();
   const generated: Prop[] = [];
+  const footprints: XZ[][] = [];
   let buildingCount = 0;
   for (const f of features) {
     if (f.kind !== 'building') continue;
@@ -193,6 +194,7 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
     extrudeBuilding({ rings, baseY: by, height, style: styleIndex(style), roof, roofStyle: styleIndex('tile_roof') }, walls, roofs);
     // Water tanks and rebar stand on flat roofs only.
     if (roof === 'flat') generated.push(...roofProps(openRing(outer), by + height, style, hash01(f.id + 'roof')));
+    footprints.push(openRing(outer));
     buildingCount++;
   }
 
@@ -202,6 +204,7 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
   const edges: NavEdge[] = [];
   const seamStubs: string[] = [];
   let roadCount = 0;
+  const commercial: { pts: XZ[]; halfWidth: number }[] = [];
   for (const { f, pts, spec, sampled } of roadList) {
     const t = f.properties;
     ribbon(sampled, spec.width, yAt, mats[spec.material], ROAD_LIFT);
@@ -234,8 +237,16 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
       }
     }
     if (spec.lights) generated.push(...alongPolyline(pts, 30, -(spec.width / 2 + 0.8), yAt));
-    if (t.highway === 'residential' || t.highway === 'unclassified') generated.push(...alongPolyline(pts, 40, spec.width / 2 + 0.6, yAt, 'powerpole'));
+    if (t.highway === 'residential' || t.highway === 'unclassified') {
+      const poles = alongPolyline(pts, 40, spec.width / 2 + 0.6, yAt, 'powerpole');
+      generated.push(...poles, ...powerSpans(poles));
+    }
+    if (COMMERCIAL_ROADS.has(String(t.highway))) commercial.push({ pts, halfWidth: spec.width / 2 });
   }
+
+  // Rolling shutters on the ground floors facing commercial roads, every 6 m.
+  const facades = facadeIndex(footprints);
+  for (const c of commercial) generated.push(...shutterProps(facades, c.pts, c.halfWidth, yAt, 6));
 
   for (const nid of seamStubs) { const n = nodes.get(nid); if (n) n.border = true; }
 
@@ -248,8 +259,10 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
   const waterData = water.finish();
 
   // 11. props and nav. Generated props are kept only inside the tile's half-open square so a
-  // roadside light near a seam belongs to exactly one tile.
-  const propsFile = PropsFile.parse({ props: [...generated.filter(inTile), ...propsExtra.props] });
+  // roadside light near a seam belongs to exactly one tile. Props inside a hero footprint are
+  // dropped, like the buildings there; curated props.extra.json entries are kept as written.
+  const inHero = (p: Prop): boolean => heroes.some((h) => pointInRing([p.x, p.z], h.ring));
+  const propsFile = PropsFile.parse({ props: [...generated.filter((p) => inTile(p) && !inHero(p)), ...propsExtra.props] });
   const nav = Nav.parse({ nodes: [...nodes.values()], edges });
   writeFileSync(`${dir}/props.json`, JSON.stringify(propsFile));
   writeFileSync(`${dir}/nav.json`, JSON.stringify(nav));

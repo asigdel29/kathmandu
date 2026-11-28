@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync } from 'node:fs';
+import { HEIGHTMAP_N } from '@ktm/geo';
 import { expect, it } from 'vitest';
 import { fixtureInputs } from '../../test/fixture-tile.ts';
 import { buildTile } from '../build/tile.ts';
@@ -46,4 +47,47 @@ it('reports border nodes missing on the other side of a seam', () => {
   expect(errs[0]).toContain('x15_y17');
   expect(errs[0]).toContain('n_2_2');
   expect(seamErrors('x14_y17', a, () => undefined)).toEqual([]);
+});
+
+/** Heightmap rising linearly west->east from 1300 m to 1300 + `rise` m (Y = 0 .. rise). */
+function slopeHeightmap(rise: number): Uint8Array {
+  const hm = new Float32Array(HEIGHTMAP_N * HEIGHTMAP_N);
+  for (let r = 0; r < HEIGHTMAP_N; r++) for (let c = 0; c < HEIGHTMAP_N; c++) hm[r * HEIGHTMAP_N + c] = 1300 + (rise * c) / (HEIGHTMAP_N - 1);
+  return new Uint8Array(hm.buffer);
+}
+
+it('bounds prop height by the tile heightmap on steep tiles', async () => {
+  const dir = await builtFixture();
+  writeFileSync(`${dir}/height.f32`, slopeHeightmap(600));
+  const props = JSON.parse(readFileSync(`${dir}/props.json`, 'utf8'));
+  const tree = { type: 'tree', x: 795, y: 600, z: 400, rotY: 0, scale: 1 };
+  props.props = [tree];
+  writeFileSync(`${dir}/props.json`, JSON.stringify(props));
+  const ok = await validateTile(dir);
+  expect(ok.errors).toEqual([]);
+
+  props.props = [{ ...tree, y: 700 }];
+  writeFileSync(`${dir}/props.json`, JSON.stringify(props));
+  const bad = await validateTile(dir);
+  expect(bad.ok).toBe(false);
+  expect(bad.errors).toHaveLength(1);
+  expect(bad.errors[0]).toContain('props[0]');
+
+  props.props = [{ ...tree, y: -50 }];
+  writeFileSync(`${dir}/props.json`, JSON.stringify(props));
+  expect((await validateTile(dir)).ok).toBe(false);
+});
+
+it('accepts real low-lying terrain but rejects NaN and no-data heights', async () => {
+  const dir = await builtFixture();
+  const write = (v: number) => writeFileSync(`${dir}/height.f32`, new Uint8Array(new Float32Array(HEIGHTMAP_N * HEIGHTMAP_N).fill(v).buffer));
+  write(830);
+  const props = JSON.parse(readFileSync(`${dir}/props.json`, 'utf8'));
+  props.props = [];
+  writeFileSync(`${dir}/props.json`, JSON.stringify(props));
+  expect((await validateTile(dir)).errors).toEqual([]);
+  write(NaN);
+  expect((await validateTile(dir)).errors.some((e) => e.includes('height.f32'))).toBe(true);
+  write(-32768);
+  expect((await validateTile(dir)).errors.some((e) => e.includes('height.f32'))).toBe(true);
 });

@@ -1,0 +1,127 @@
+{
+  "zone": "suburb",
+  "defaultLevels": 4,
+  "buildings": {
+    "a478076566": {
+      "levels": 6,
+      "roof": "flat",
+      "style": "rcc_plaster_white"
+    },
+    "a407145478": {
+      "levels": 5,
+      "roof": "flat",
+      "style": "rcc_plaster_white",
+      "name": "Hotel Manaslu"
+    },
+    "a477383592": {
+      "levels": 5,
+      "roof": "flat",
+      "style": "rcc_plaster_white"
+    },
+    "a478076590": {
+      "levels": 5,
+      "roof": "flat",
+      "style": "rcc_plaster_white"
+    },
+    "a686668154": {
+      "levels": 4,
+      "roof": "flat",
+      "style": "rcc_plaster_white"
+    },
+    "a1813111182": {
+      "levels": 6,
+      "roof": "flat",
+      "style": "commercial_glass"
+    },
+    "a1813111180": {
+      "levels": 5,
+      "roof": "flat",
+      "style": "rcc_plaster_white"
+    },
+    "a1813111178": {
+      "levels": 4,
+      "roof": "flat",
+      "style": "rcc_plaster_white"
+    },
+    "a1813111044": {
+      "levels": 5,
+      "roof": "flat",
+      "style": "rcc_plaster_white"
+    },
+    "a392120774": {
+      "levels": 6,
+      "roof": "flat",
+      "style": "commercial_glass"
+    },
+    "a1034303882": {
+      "levels": 7,
+      "roof": "flat",
+      "style": "commercial_glass"
+    },
+    "a491221276": {
+      "levels": 7,
+      "roof": "flat",
+      "style": "rcc_plaster_white"
+    },
+    "a1813111152": {
+      "levels": 8,
+      "roof": "flat",
+      "style": "rcc_plaster_white"
+    },
+    "a1002655424": {
+      "levels": 4,
+      "roof": "flat",
+      "style": "commercial_glass"
+    },
+    "a358923888": {
+      "levels": 3,
+      "roof": "flat",
+      "style": "commercial_glass"
+    },
+    "a1813111004": {
+      "levels": 5,
+      "roof": "flat",
+      "style": "commercial_glass"
+    },
+    "a478076704": {
+      "levels": 4,
+      "roof": "flat",
+      "style": "rcc_plaster_white"
+    },
+    "a490091940": {
+      "levels": 4,
+      "roof": "flat",
+      "style": "commercial_glass"
+    },
+    "a409763844": {
+      "levels": 4,
+      "roof": "flat",
+      "style": "institutional",
+      "name": "Inland Revenue Department"
+    },
+    "a489863360": {
+      "levels": 3,
+      "roof": "flat",
+      "style": "institutional",
+      "name": "Kendriya Vidyalaya"
+    },
+    "a490897590": {
+      "levels": 2,
+      "roof": "flat",
+      "style": "tin_shed"
+    },
+    "a1817810482": {
+      "levels": 2,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a490851002": {
+      "levels": 2,
+      "roof": "pitched",
+      "style": "temple_brick",
+      "name": "Shree Sweta Kali Mai Mandir"
+    }
+  },
+  "roads": {},
+  "notes": "Lazimpat, Gairidhara and Nil Saraswati: dense 3-5 storey RCC lanes around a primary road lined with hotels, banks and offices; hotels, towers, schools and the two small temples are restyled."
+}

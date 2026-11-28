@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
-import { HEIGHTMAP_N, TILE_SIZE_M, inGrid, parseTileId, tileBounds, tileId, tileOrigin } from '@ktm/geo';
+import { BASE_ELEVATION_M, HEIGHTMAP_N, TILE_SIZE_M, inGrid, parseTileId, tileBounds, tileId, tileOrigin } from '@ktm/geo';
 import { Nav, PropsFile, TileMeta } from '@ktm/schema';
 
 export interface ValidateResult { ok: boolean; errors: string[]; warnings: string[] }
@@ -10,7 +10,10 @@ export interface ValidateOptions { neighborNav?: (id: string) => Nav | undefined
 const REQUIRED = ['meta.json', 'terrain.glb', 'buildings.glb', 'roads.glb', 'props.json', 'nav.json', 'height.f32'] as const;
 const TRI_BUDGET = { terrain: 8_192, buildings: 600_000, roads: 120_000 } as const;
 const BYTE_BUDGET: Record<string, number> = { 'buildings.glb': 8 * 1024 * 1024, 'roads.glb': 2 * 1024 * 1024 };
-const HEIGHT_MIN = 1100, HEIGHT_MAX = 3000;
+/** Sanity range for heightmap values (m above sea level); the eastern and southern outskirts dip to about 830 m. */
+const HEIGHT_MIN = 500, HEIGHT_MAX = 3000;
+/** Prop Y may sit this far below the lowest and above the highest ground sample (roof props, tall buildings). */
+const PROP_BELOW_M = 5, PROP_ABOVE_M = 60;
 const MAX_LISTED = 5;
 /** Distance (m) within which a node counts as lying on a tile edge; corners are excluded from seam checks. */
 const EDGE_EPS = 0.01;
@@ -73,11 +76,17 @@ export async function validateTile(dir: string, opts: ValidateOptions = {}): Pro
 
   // heightmap
   const hb = readFileSync(`${dir}/height.f32`);
+  let propMinY = meta.baseY - PROP_BELOW_M, propMaxY = meta.baseY + 300; // fallback when the heightmap is unusable
   if (hb.byteLength !== HEIGHTMAP_N * HEIGHTMAP_N * 4) errors.push(`height.f32: ${hb.byteLength} bytes, expected ${HEIGHTMAP_N * HEIGHTMAP_N * 4}`);
   else {
     const hm = new Float32Array(hb.buffer.slice(hb.byteOffset, hb.byteOffset + hb.byteLength));
-    let bad = 0, first = -1;
-    hm.forEach((h, k) => { if (!(h >= HEIGHT_MIN && h <= HEIGHT_MAX)) { bad++; if (first < 0) first = k; } });
+    let bad = 0, first = -1, lo = Infinity, hi = -Infinity;
+    hm.forEach((h, k) => {
+      if (!(h >= HEIGHT_MIN && h <= HEIGHT_MAX)) { bad++; if (first < 0) first = k; return; }
+      if (h < lo) lo = h;
+      if (h > hi) hi = h;
+    });
+    if (hi >= lo) { propMinY = lo - BASE_ELEVATION_M - PROP_BELOW_M; propMaxY = hi - BASE_ELEVATION_M + PROP_ABOVE_M; }
     if (bad) errors.push(`height.f32: ${bad} value(s) NaN or outside [${HEIGHT_MIN}, ${HEIGHT_MAX}], first at ${first} = ${hm[first]}`);
   }
 
@@ -95,7 +104,7 @@ export async function validateTile(dir: string, opts: ValidateOptions = {}): Pro
   const badProps: string[] = [];
   props.forEach((p, k) => {
     const inXZ = p.x >= -5 && p.x <= TILE_SIZE_M + 5 && p.z >= -5 && p.z <= TILE_SIZE_M + 5;
-    const inY = p.y >= meta.baseY - 5 && p.y <= meta.baseY + 300;
+    const inY = p.y >= propMinY && p.y <= propMaxY;
     if (!inXZ || !inY) badProps.push(`props[${k}] ${p.type} at (${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)}) outside tile bounds`);
   });
   errors.push(...badProps.slice(0, MAX_LISTED));

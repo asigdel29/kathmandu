@@ -7,7 +7,7 @@ const sha = 'a'.repeat(64);
 const manifest = {
   version: 1, generatedAt: '2026-11-26T00:00:00.000Z', tileSize: 800, baseUrl: 'http://localhost/world/',
   grid: { cols: 45, rows: 34, xMin: 0, zMax: 0 }, tiles: {},
-  heroes: { boudhanath: { tile: 'x21_y19', url: 'http://localhost/b.glb', sha256: sha }, 'not-in-catalog': { tile: 'x14_y17', url: 'http://localhost/n.glb', sha256: sha } },
+  heroes: { boudhanath: { tile: 'x21_y19', url: 'http://localhost/b.glb', sha256: sha, lat: 27.7, lon: 85.3, rotationDeg: 0, scale: 1 }, 'not-in-catalog': { tile: 'x14_y17', url: 'http://localhost/n.glb', sha256: sha, lat: 27.7, lon: 85.3, rotationDeg: 0, scale: 1 } },
 } as Manifest;
 
 describe('resolveLandmarks', () => {

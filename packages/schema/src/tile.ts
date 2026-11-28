@@ -33,6 +33,10 @@ export const Manifest = z.object({
   baseUrl: z.url(),
   grid: z.object({ cols: z.number().int(), rows: z.number().int(), xMin: z.number(), zMax: z.number() }),
   tiles: z.record(TileIdSchema, z.object({ hash: Sha256, kind: TileKind, zone: ZoneId, buildings: z.number().int() })),
-  heroes: z.record(z.string(), z.object({ tile: TileIdSchema, url: z.url(), sha256: Sha256 })),
+  heroes: z.record(z.string(), z.object({
+    tile: TileIdSchema, url: z.url(), sha256: Sha256,
+    lat: z.number(), lon: z.number(), rotationDeg: z.number().default(0), scale: z.number().positive().default(1),
+  })),
 });
 export type Manifest = z.infer<typeof Manifest>;
+export type ManifestHero = Manifest['heroes'][string];

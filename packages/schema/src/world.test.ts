@@ -13,6 +13,11 @@ describe('PropsFile', () => {
     const p = PropsFile.parse({ props: [{ type: 'streetlight', x: 1, y: 2, z: 3 }] });
     expect(p.props[0]).toMatchObject({ rotY: 0, scale: 1 });
   });
+  it('accepts shutter and wires, and an optional pitch only on request', () => {
+    const p = PropsFile.parse({ props: [{ type: 'shutter', x: 0, y: 0, z: 0 }, { type: 'wires', x: 0, y: 8, z: 0, pitch: 0.1, scale: 1.02 }] });
+    expect(p.props[0]).not.toHaveProperty('pitch');
+    expect(p.props[1]!.pitch).toBe(0.1);
+  });
 });
 describe('Nav', () => {
   it('requires quantised world ids', () => {
