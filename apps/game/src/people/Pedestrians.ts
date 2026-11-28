@@ -1,12 +1,12 @@
 import * as THREE from 'three/webgpu';
 import type { TileId } from '@ktm/geo';
 import palette from '../../../../world/style/palette.json';
-import type { GraphEdge, NavGraph } from '../traffic/NavGraph.ts';
+import { FOOT_CLASSES, type GraphEdge, type NavGraph } from '../traffic/NavGraph.ts';
 import { makePath, pointAt, resolveOverlaps, stepWalker, type Path, type Walker, type XZ } from './steer.ts';
 import { FIGURE_POOL_DEFAULT, FigurePool, type FigurePerson } from './PedFigures.ts';
 
 /** Edge classes that are walked down the middle; every other class is a road, walked along both edges. */
-export const FOOT_CLASSES: ReadonlySet<string> = new Set(['footway', 'path', 'pedestrian', 'steps']);
+export { FOOT_CLASSES };
 
 /** People walk a road's edges this far from its centreline: half the carriageway plus 1 m. */
 export const sidewalkOffset = (width: number): number => width / 2 + 1;
