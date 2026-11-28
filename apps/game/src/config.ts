@@ -1,5 +1,6 @@
 import type { TileId } from '@ktm/geo';
 import { VehicleType } from '@ktm/schema';
+import { parseQuality, type Quality } from './post/quality.ts';
 export type View = 'follow' | 'iso' | 'street';
 export interface Config {
   worldBase: string; tile: TileId; spawn?: { x: number; z: number }; view: View; timeOfDay: number; freeze: boolean;
@@ -11,6 +12,12 @@ export interface Config {
   hero?: string;
   /** Ambient traffic; off with `traffic=0`. */
   traffic: boolean;
+  /** Post-processing tier; undefined = chosen from the first 2 s of frame time. */
+  quality?: Quality;
+  /** false (`taa=0`) uses MSAA 4x instead of the temporal resolve. */
+  taa: boolean;
+  /** `wet=1`: wet asphalt at any hour. */
+  wet: boolean;
 }
 
 export function readConfig(search: string, worldBase: string): Config {
@@ -30,5 +37,9 @@ export function readConfig(search: string, worldBase: string): Config {
     autodrive: q.get('autodrive') === '1',
     hero: hero && /^[a-z0-9-]+$/.test(hero) ? hero : undefined,
     traffic: q.get('traffic') !== '0',
+    // Frozen-clock and autodrive runs are scripted captures: pinned to `high` so a slow software renderer is not demoted.
+    quality: parseQuality(q.get('quality')) ?? (q.get('freeze') === '1' || q.get('autodrive') === '1' ? 'high' : undefined),
+    taa: q.get('taa') !== '0',
+    wet: q.get('wet') === '1',
   };
 }

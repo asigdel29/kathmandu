@@ -1,6 +1,7 @@
 import * as THREE from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { tileOrigin, type TileId } from '@ktm/geo';
+import type { UniformNode } from 'three/webgpu';
 import { Nav, PropsFile, TileMeta, type Manifest } from '@ktm/schema';
 import { createRoadMarkings, createRoadMaterials, loadRoadTextures, roadMaterialFor, type RoadMaterials } from '../materials/road.ts';
 import { createTerrainMaterial, loadTerrainTextures } from '../materials/terrain.ts';
@@ -11,10 +12,11 @@ export interface LoadedTile { id: TileId; lod: Lod; group: THREE.Group; meta: Ti
 
 /** Ground, road and river materials shared by every tile. */
 export interface SurfaceMaterials { terrain: THREE.Material; roads: RoadMaterials; water: THREE.Material }
-export function createSurfaceMaterials(textureBase: string): SurfaceMaterials {
+/** wet: 0..1 uniform that drives asphalt gloss (see materials/road.ts); roads stay dry when omitted. */
+export function createSurfaceMaterials(textureBase: string, wet?: UniformNode<'float'>): SurfaceMaterials {
   return {
     terrain: createTerrainMaterial(loadTerrainTextures(textureBase)),
-    roads: createRoadMaterials(loadRoadTextures(textureBase)),
+    roads: createRoadMaterials(loadRoadTextures(textureBase), wet),
     water: createWaterMaterial(),
   };
 }
