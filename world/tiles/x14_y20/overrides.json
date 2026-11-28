@@ -1,0 +1,224 @@
+{
+  "zone": "suburb",
+  "defaultLevels": 4,
+  "notes": "Dense RCC district along the Ring Road and the Bishnumati corridor: tile default raised to four storeys; schools, colleges and hospitals restyled institutional; no footprint crosses a road centreline, so nothing is removed.",
+  "buildings": {
+    "a395801576": {
+      "style": "institutional",
+      "levels": 2,
+      "roof": "flat"
+    },
+    "a410067892": {
+      "levels": 2,
+      "roof": "pitched",
+      "style": "temple_brick",
+      "name": "Mandir"
+    },
+    "a410068006": {
+      "levels": 1,
+      "roof": "pitched",
+      "style": "temple_brick"
+    },
+    "a411739004": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a411739158": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "pitched"
+    },
+    "a411739294": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a416350560": {
+      "style": "institutional",
+      "levels": 5,
+      "roof": "flat"
+    },
+    "a416350588": {
+      "levels": 5,
+      "roof": "flat",
+      "style": "commercial_glass",
+      "name": "Ncell Centre"
+    },
+    "a416382924": {
+      "style": "institutional",
+      "levels": 5,
+      "roof": "flat"
+    },
+    "a416382936": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a417087664": {
+      "levels": 2,
+      "roof": "flat"
+    },
+    "a417308008": {
+      "levels": 3,
+      "roof": "flat",
+      "style": "institutional",
+      "name": "The International Academy"
+    },
+    "a439235426": {
+      "style": "institutional",
+      "levels": 5,
+      "roof": "flat"
+    },
+    "a439551876": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a439551878": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a439551880": {
+      "style": "institutional",
+      "levels": 4,
+      "roof": "flat"
+    },
+    "a439551904": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a439551906": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a439551908": {
+      "style": "institutional",
+      "levels": 4,
+      "roof": "flat"
+    },
+    "a439551912": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a439551916": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a439551924": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a439551926": {
+      "style": "institutional",
+      "levels": 2,
+      "roof": "pitched"
+    },
+    "a439551928": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a439551930": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a439551936": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a439551938": {
+      "style": "institutional",
+      "levels": 4,
+      "roof": "flat"
+    },
+    "a439551940": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a439551942": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a439551948": {
+      "style": "institutional",
+      "levels": 2,
+      "roof": "flat"
+    },
+    "a439551950": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a439551954": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a453873908": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a453873930": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a453873940": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a456994834": {
+      "style": "institutional",
+      "levels": 8,
+      "roof": "flat"
+    },
+    "a458257420": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a458257422": {
+      "style": "institutional",
+      "levels": 5,
+      "roof": "flat"
+    },
+    "a490013796": {
+      "levels": 4,
+      "roof": "flat",
+      "style": "commercial_glass",
+      "name": "Laskush Party Palace"
+    },
+    "a1004698600": {
+      "levels": 1,
+      "roof": "flat",
+      "style": "tin_shed",
+      "name": "Sai Petrol Pump"
+    },
+    "a1050781412": {
+      "levels": 2,
+      "roof": "flat",
+      "style": "institutional",
+      "name": "New Testament Church Nepal"
+    },
+    "a1808423108": {
+      "levels": 5,
+      "roof": "flat",
+      "style": "rcc_plaster_white",
+      "name": "Rukameli Malla Hotel"
+    }
+  },
+  "roads": {}
+}
