@@ -21,7 +21,7 @@ import { loadManifest } from './world/manifest.ts';
 import { PropsRenderer } from './world/PropsRenderer.ts';
 import { Sky } from './world/Sky.ts';
 import { StreetLights } from './world/StreetLights.ts';
-import { TileLoader } from './world/TileLoader.ts';
+import { TileLoader, createSurfaceMaterials } from './world/TileLoader.ts';
 import { TileStreamer } from './world/TileStreamer.ts';
 import { NavGraph } from './traffic/NavGraph.ts';
 import { Traffic } from './traffic/Traffic.ts';
@@ -58,7 +58,7 @@ async function main(): Promise<void> {
   night.value = nightAmount(clock.time);
   const wet = uniform(wetness(config.wet, night.value));
   const facade = createFacadeMaterial(night);
-  const loader = new TileLoader(config.worldBase, manifest, facade, wet);
+  const loader = new TileLoader(config.worldBase, manifest, facade, createSurfaceMaterials(`${import.meta.env.BASE_URL}textures/`, wet));
   const props = new PropsRenderer(scene, night);
   const streetLights = new StreetLights(scene, () => props.lamps());
   const streamer = new TileStreamer(scene, physics, props, loader);

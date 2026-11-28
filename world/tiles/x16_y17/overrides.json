@@ -1,0 +1,192 @@
+{
+  "zone": "suburb",
+  "defaultLevels": 4,
+  "buildings": {
+    "a5389659": {
+      "remove": true
+    },
+    "a389492476": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a401071472": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a401126718": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a402761006": {
+      "style": "institutional",
+      "roof": "flat",
+      "levels": 3
+    },
+    "a422459058": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a430064492": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a430064494": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a430064496": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a430064502": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a431109504": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a431109518": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a442856126": {
+      "style": "institutional",
+      "roof": "flat",
+      "levels": 3
+    },
+    "a443504282": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a443912132": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a443912136": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a443912138": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a443912140": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a454208334": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a454208336": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a454208348": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a463260718": {
+      "style": "institutional",
+      "levels": 5,
+      "roof": "flat"
+    },
+    "a476865956": {
+      "style": "institutional",
+      "roof": "flat"
+    },
+    "a476869212": {
+      "style": "institutional",
+      "roof": "flat",
+      "levels": 3
+    },
+    "a480716808": {
+      "style": "institutional",
+      "roof": "flat",
+      "levels": 3
+    },
+    "a224897144": {
+      "style": "institutional",
+      "levels": 4,
+      "roof": "flat"
+    },
+    "a401071668": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a422459000": {
+      "style": "commercial_glass",
+      "levels": 5,
+      "roof": "flat"
+    },
+    "a595614794": {
+      "style": "rcc_plaster_white",
+      "levels": 17,
+      "roof": "flat"
+    },
+    "a595614892": {
+      "style": "commercial_glass",
+      "levels": 10,
+      "roof": "flat"
+    },
+    "a2826023818": {
+      "style": "rcc_plaster_white",
+      "levels": 11,
+      "roof": "flat"
+    },
+    "a1812260332": {
+      "style": "rcc_plaster_pastel",
+      "levels": 9,
+      "roof": "flat"
+    },
+    "a401432408": {
+      "style": "commercial_glass",
+      "levels": 4,
+      "roof": "flat"
+    },
+    "a401432410": {
+      "style": "commercial_glass",
+      "levels": 4,
+      "roof": "flat"
+    },
+    "a478113568": {
+      "style": "commercial_glass",
+      "levels": 4,
+      "roof": "flat"
+    },
+    "a480502372": {
+      "style": "commercial_glass",
+      "levels": 4,
+      "roof": "flat"
+    },
+    "a430916620": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a984591226": {
+      "style": "rcc_plaster_white",
+      "levels": 5,
+      "roof": "flat"
+    },
+    "a476861536": {
+      "style": "temple_brick",
+      "levels": 2,
+      "roof": "pitched"
+    },
+    "a1003919024": {
+      "style": "temple_brick",
+      "levels": 2,
+      "roof": "pitched"
+    },
+    "a442071156": {
+      "style": "temple_brick",
+      "levels": 3,
+      "roof": "flat"
+    }
+  },
+  "roads": {},
+  "notes": "Kamalpokhari: dense four-storey RCC blocks with colleges, coaching and consultancy offices along Pashupati Sadak, Putalisadak and Kamaladi. Colleges, schools, hospitals, the National Academy Hall and the Chaarkhaal compound use the institutional style; banks, Kathmandu Plaza and large offices use the glass commercial style; tagged towers (9 to 17 storeys) keep their levels. A duplicate footprint of the Chaarkhaal compound is removed."
+}
