@@ -18,6 +18,7 @@ import { HeroLoader, heroSpawn } from './world/HeroLoader.ts';
 import { loadManifest } from './world/manifest.ts';
 import { PropsRenderer } from './world/PropsRenderer.ts';
 import { Sky } from './world/Sky.ts';
+import { StreetLights } from './world/StreetLights.ts';
 import { TileLoader } from './world/TileLoader.ts';
 import { TileStreamer } from './world/TileStreamer.ts';
 import { NavGraph } from './traffic/NavGraph.ts';
@@ -48,7 +49,7 @@ async function main(): Promise<void> {
   const { renderer, post } = await createRenderer(scene, camera);
   document.body.appendChild(renderer.domElement);
 
-  const sky = new Sky(scene, config.timeOfDay);
+  const sky = new Sky(scene, renderer, config.timeOfDay);
   const physics = await Physics.create();
   const clock = new Clock(config.timeOfDay, { frozen: config.freeze });
   const night = createNightUniform();
@@ -56,6 +57,7 @@ async function main(): Promise<void> {
   const facade = createFacadeMaterial(night);
   const loader = new TileLoader(config.worldBase, manifest, facade);
   const props = new PropsRenderer(scene, night);
+  const streetLights = new StreetLights(scene, () => props.lamps());
   const streamer = new TileStreamer(scene, physics, props, loader);
   const heroes = new HeroLoader(scene, config.worldBase, manifest, (x, z) => streamer.heightAt(x, z));
   const target = config.hero ? manifest.heroes[config.hero] : undefined;
@@ -148,7 +150,8 @@ async function main(): Promise<void> {
   debug.driving = config.vehicle ?? null;
   await heroes.update(streamer.loaded());
   debug.trafficCount = traffic?.count ?? 0;
-  window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic, audio, temples };
+  window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic, audio, temples, streetLights };
+  streetLights.update(1, start, night.value); // lamps on before the first render, so the lit pipelines are compiled in the warm-up
   // Warm-up: render until the frame time settles (pipeline compiles and temporal history allocation happen in
   // the first frames) before reporting ready, so the first driven frames are not one long stall.
   follow.update(0, config.vehicle ? vehicles[vehicles.length - 1]!.group.position : player.position, input, lookAt, yawTowards(start, lookAt));
@@ -209,6 +212,7 @@ async function main(): Promise<void> {
     sky.setTime(clock.time);
     night.value = nightAmount(clock.time);
     sky.update(focus);
+    streetLights.update(frameDt, focus, night.value);
     void streamer.update(focus);
     void heroes.update(streamer.loaded());
     const speed = car ? Math.abs(car.speedMs) : 0;
