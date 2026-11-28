@@ -152,6 +152,7 @@ async function main(): Promise<void> {
   debug.trafficCount = traffic?.count ?? 0;
   window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic, audio, temples, streetLights };
   streetLights.update(1, start, night.value); // lamps on before the first render, so the lit pipelines are compiled in the warm-up
+  await facade.userData.texturesReady;
   // Warm-up: render until the frame time settles (pipeline compiles and temporal history allocation happen in
   // the first frames) before reporting ready, so the first driven frames are not one long stall.
   follow.update(0, config.vehicle ? vehicles[vehicles.length - 1]!.group.position : player.position, input, lookAt, yawTowards(start, lookAt));
