@@ -28,7 +28,7 @@ describe('serialise and parse', () => {
     expect(parseSave(JSON.stringify({ ...save, version: 2 }))).toBeNull();
     expect(parseSave(JSON.stringify({ ...save, x: 'a' }))).toBeNull();
     expect(parseSave(JSON.stringify({ ...save, timeOfDay: null }))).toBeNull();
-    expect(parseSave(JSON.stringify({ ...save, vehicle: 'bus' }))).toBeNull();
+    expect(parseSave(JSON.stringify({ ...save, vehicle: 'hovercraft' }))).toBeNull();
   });
   it('drops unknown fields', () => {
     expect(parseSave(JSON.stringify({ ...save, extra: true }))).toEqual(save);
@@ -60,7 +60,7 @@ describe('loadResume', () => {
   });
   it('ignores a bad field', () => {
     expect(loadResume(stored({ x: 'a' }), '')).toEqual({});
-    expect(loadResume(stored({ vehicle: 'bus' }), '')).toEqual({});
+    expect(loadResume(stored({ vehicle: 'hovercraft' }), '')).toEqual({});
   });
   it('reset=1 clears the entry', () => {
     const s = stored();

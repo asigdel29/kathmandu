@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const VehicleType = z.enum(['tempo', 'taxi', 'motorbike']);
+export const VehicleType = z.enum(['tempo', 'taxi', 'motorbike', 'micro', 'bus', 'truck']);
 export type VehicleType = z.infer<typeof VehicleType>;
 
 /** Per-type driving and suspension tuning. Units: metres, kg, N, km/h, degrees. */
@@ -30,7 +30,11 @@ export const VehicleTuning = z.object({
   suspensionCompression: z.number().positive(),
   suspensionRelaxation: z.number().positive(),
   frictionSlip: z.number().positive(),
-  /** Visual lean into turns; 0 for tempo and taxi. */
+  /** Front axle distance ahead of the chassis centre, m; default length / 2 - max(0.35, 1.6 wheelRadius). */
+  frontAxle: z.number().positive().optional(),
+  /** Rear axle distance behind the chassis centre, m; defaults to the front axle distance. */
+  rearAxle: z.number().positive().optional(),
+  /** Visual lean into turns; 0 for everything but the motorbike. */
   leanMaxDeg: z.number().nonnegative().max(45),
 }).strict().refine((t) => t.steerFadeEndKmh > t.steerFadeStartKmh, {
   message: 'steerFadeEndKmh must be greater than steerFadeStartKmh',
@@ -41,6 +45,6 @@ export type VehicleTuning = z.infer<typeof VehicleTuning>;
 /** world/vehicles.json */
 export const VehicleTunings = z.object({
   version: z.literal(1),
-  vehicles: z.object({ tempo: VehicleTuning, taxi: VehicleTuning, motorbike: VehicleTuning }).strict(),
+  vehicles: z.object({ tempo: VehicleTuning, taxi: VehicleTuning, motorbike: VehicleTuning, micro: VehicleTuning, bus: VehicleTuning, truck: VehicleTuning }).strict(),
 }).strict();
 export type VehicleTunings = z.infer<typeof VehicleTunings>;

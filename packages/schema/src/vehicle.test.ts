@@ -19,6 +19,25 @@ describe('VehicleTunings', () => {
     for (const t of [v.tempo, v.taxi, v.motorbike]) expect(t.steerFadeStartKmh).toBe(60);
   });
 
+  it('has the three heavier traffic types', () => {
+    const { vehicles: v } = VehicleTunings.parse(raw);
+    expect(v.bus.massKg).toBeGreaterThan(v.truck.massKg);
+    expect(v.truck.massKg).toBeGreaterThan(v.micro.massKg);
+    expect(v.micro.massKg).toBeGreaterThan(v.taxi.massKg);
+    for (const t of [v.bus, v.truck, v.micro]) expect(t.wheels).toBe(4);
+  });
+
+  it('keeps optional axle positions inside the chassis', () => {
+    const { vehicles: v } = VehicleTunings.parse(raw);
+    for (const t of Object.values(v)) {
+      for (const a of [t.frontAxle, t.rearAxle]) if (a !== undefined) expect(a).toBeLessThan(t.length / 2);
+    }
+    expect(v.bus.frontAxle).toBeDefined();
+    const bad = clone();
+    bad.vehicles.bus.frontAxle = -1;
+    expect(() => VehicleTunings.parse(bad)).toThrow();
+  });
+
   it('rejects an unknown key', () => {
     const d = clone();
     d.vehicles.taxi.turbo = true;

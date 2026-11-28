@@ -3,8 +3,10 @@ import * as THREE from 'three/webgpu';
 import type { VehicleTuning, VehicleType } from '@ktm/schema';
 import type { Physics } from '../physics/Physics.ts';
 import { VEHICLE_COLORS, wheelLayout } from '../vehicles/Vehicle.ts';
+import { bodyWithRider, steerableWheels, type VehicleModel, type VehicleSkins } from '../vehicles/models.ts';
 import { IDM, idmAccel, idmStep } from './idm.ts';
 import { laneCentre } from './lane.ts';
+import { MIN_ROAD_WIDTH_M, pickVehicleType, spinStep, steerAngle } from './mix.ts';
 import { isDrivable, type Exit, type GraphEdge, type NavGraph } from './NavGraph.ts';
 
 interface XZ { x: number; z: number }
@@ -58,7 +60,6 @@ export interface TrafficCar {
   x: number; y: number; z: number; yaw: number;
 }
 
-const SPAWN_MIX: readonly [VehicleType, number][] = [['taxi', 0.4], ['motorbike', 0.4], ['tempo', 0.2]];
 /** How far ahead the route is planned and leaders are searched for, m. */
 const LOOKAHEAD_M = 80;
 /** Junctions closer than this are checked for right of way, m. */
@@ -206,7 +207,7 @@ export class TrafficSim {
       while (lo < hi) { const mid = (lo + hi) >> 1; if (c.cum[mid]! < pick) lo = mid + 1; else hi = mid; }
       const edge = c.edges[lo]!;
       const forward = edge.oneway || o.random() < 0.5;
-      const type = this.pickType();
+      const type = pickVehicleType(o.random(), edge.width);
       const len = this.specs[type].length;
       if (edge.length < len + 2) continue;
       const s = len / 2 + 1 + o.random() * (edge.length - len - 2);
@@ -219,19 +220,13 @@ export class TrafficSim {
     }
   }
 
-  private pickType(): VehicleType {
-    let r = this.opts.random();
-    for (const [t, w] of SPAWN_MIX) { if (r < w) return t; r -= w; }
-    return 'taxi';
-  }
-
   /** Extend the planned route to the lookahead distance. */
   private planRoute(a: TrafficCar): void {
     let ahead = a.edge.length - a.s;
     let cur: Exit = { edge: a.edge, forward: a.forward };
     for (const x of a.route) { ahead += x.edge.length; cur = x; }
     while (ahead < LOOKAHEAD_M) {
-      const next = this.chooseExit(cur);
+      const next = this.chooseExit(cur, a.type);
       if (!next) break;
       a.route.push(next);
       ahead += next.edge.length;
@@ -239,13 +234,18 @@ export class TrafficSim {
     }
   }
 
-  /** Pick how to leave the node at the end of `via`: no U-turn unless it is a dead end; straighter and faster roads are likelier. */
-  private chooseExit(via: Exit): Exit | undefined {
+  /**
+   * Pick how to leave the node at the end of `via`: no U-turn unless it is a dead end; straighter and faster roads are likelier;
+   * roads too narrow for the vehicle type are avoided while any other way out exists.
+   */
+  private chooseExit(via: Exit, type: VehicleType): Exit | undefined {
     const node = via.forward ? via.edge.to : via.edge.from;
     // Footways and paths are in the graph for pedestrians; vehicles never turn onto them.
     const all = this.graph.exits(node).filter((x) => isDrivable(x.edge));
     const onward = all.filter((x) => x.edge !== via.edge);
-    const options = onward.length > 0 ? onward : all;
+    const ways = onward.length > 0 ? onward : all;
+    const fits = ways.filter((x) => x.edge.width >= MIN_ROAD_WIDTH_M[type]);
+    const options = fits.length > 0 ? fits : ways;
     if (options.length === 0) return undefined;
     const dIn = this.direction(via);
     let total = 0;
@@ -373,6 +373,8 @@ export interface TrafficViewOptions extends Partial<TrafficOptions> {
   colliderRadius?: number;
   /** Ground height under a point (world Y), when known; otherwise the height interpolated between nav nodes is used. */
   groundY?: (x: number, z: number) => number | undefined;
+  /** Baked vehicle models and their shared material; types without a model are drawn as boxes. */
+  skins?: VehicleSkins;
 }
 
 const COLLIDER_RADIUS_M = 60;
@@ -380,50 +382,86 @@ const COLLIDER_HYSTERESIS_M = 5;
 const MAX_SUBSTEP_S = 0.05;
 const TURN_RATE = 4; // rad/s, visual heading easing at corners
 const ROAD_LIFT_M = 0.08;
+const STEER_EASE = 12; // 1/s, front wheel angle easing
 
-interface TypeMeshes { body: THREE.InstancedMesh; wheels: THREE.InstancedMesh; wheelSpots: { x: number; z: number }[]; rideHeight: number }
+interface WheelSpot { x: number; z: number; steer: boolean }
+interface TypeMeshes {
+  body: THREE.InstancedMesh; wheels: THREE.InstancedMesh; wheelSpots: WheelSpot[];
+  /** Height of the body mesh origin above the road: the chassis centre for the box, 0 for a model (origin on the ground). */
+  rideHeight: number;
+  /** Chassis centre above the road, for the collider. */
+  colliderY: number;
+  radius: number; wheelbase: number; modelled: boolean;
+}
 
 /**
- * Renders the traffic simulation with the G1 placeholder vehicle shapes (one instanced body and wheel set per type)
- * and gives vehicles near the player kinematic colliders. No dynamic bodies: traffic moves kinematically along edges.
+ * Renders the traffic simulation: one instanced body and wheel set per type, from the baked GLB when there is one (lit lamps at night,
+ * wheels that spin with the speed and steer through bends) else the G1 placeholder shapes, and gives vehicles near the player
+ * kinematic colliders. No dynamic bodies: traffic moves kinematically along edges.
  */
 export class Traffic {
   readonly sim: TrafficSim;
   private meshes = new Map<VehicleType, TypeMeshes>();
   private colliders = new Map<number, { body: RAPIER.RigidBody; collider: RAPIER.Collider }>();
   private headings = new Map<number, number>();
+  private wheelState = new Map<number, { spin: number; steer: number }>();
   private colliderRadius: number;
   private groundY?: (x: number, z: number) => number | undefined;
   private disposables: { dispose(): void }[] = [];
   private m = new THREE.Matrix4(); private q = new THREE.Quaternion(); private p = new THREE.Vector3(); private one = new THREE.Vector3(1, 1, 1);
-  private up = new THREE.Vector3(0, 1, 0);
+  private qSteer = new THREE.Quaternion(); private qSpin = new THREE.Quaternion(); private qWheel = new THREE.Quaternion();
+  private up = new THREE.Vector3(0, 1, 0); private right = new THREE.Vector3(1, 0, 0);
 
   constructor(private scene: THREE.Scene, private physics: Physics, graph: NavGraph, private tunings: Record<VehicleType, VehicleTuning>, opts: TrafficViewOptions = {}) {
-    const { colliderRadius = COLLIDER_RADIUS_M, groundY, ...simOpts } = opts;
+    const { colliderRadius = COLLIDER_RADIUS_M, groundY, skins, ...simOpts } = opts;
     this.colliderRadius = colliderRadius;
     this.groundY = groundY;
     this.sim = new TrafficSim(graph, tunings, simOpts);
     const max = { ...TRAFFIC_DEFAULTS, ...simOpts }.max;
-    this.sim.onDespawn = (a) => { this.dropCollider(a.id); this.headings.delete(a.id); };
+    this.sim.onDespawn = (a) => { this.dropCollider(a.id); this.headings.delete(a.id); this.wheelState.delete(a.id); };
     const wheelMat = new THREE.MeshStandardNodeMaterial({ color: 0x1b1b1b, roughness: 0.9 });
     this.disposables.push(wheelMat);
     for (const type of Object.keys(tunings) as VehicleType[]) {
       const t = tunings[type];
-      const bodyMat = new THREE.MeshStandardNodeMaterial({ color: VEHICLE_COLORS[type], roughness: 0.6, metalness: 0.1 });
-      const bodyGeo = new THREE.BoxGeometry(t.width, t.height, t.length);
-      const wheelWidth = type === 'motorbike' ? 0.12 : 0.2;
-      const wheelGeo = new THREE.CylinderGeometry(t.wheelRadius, t.wheelRadius, wheelWidth, 12).rotateZ(Math.PI / 2);
-      const spots = type === 'motorbike'
-        ? wheelLayout(type, t).filter((_, i) => i % 2 === 0).map((w) => ({ x: 0, z: w.z }))
-        : wheelLayout(type, t).map((w) => ({ x: w.x, z: w.z }));
-      const body = new THREE.InstancedMesh(bodyGeo, bodyMat, Math.max(1, max));
-      const wheels = new THREE.InstancedMesh(wheelGeo, wheelMat, Math.max(1, max * spots.length));
-      for (const im of [body, wheels]) { im.count = 0; im.castShadow = true; im.frustumCulled = false; im.name = `traffic-${type}`; scene.add(im); }
-      body.receiveShadow = true;
-      this.disposables.push(bodyMat, bodyGeo, wheelGeo, body, wheels);
-      // Same rest pose as the drivable vehicle: chassis centre at suspension rest + wheel radius above the wheel mount.
-      this.meshes.set(type, { body, wheels, wheelSpots: spots, rideHeight: t.suspensionRestLength + t.wheelRadius + t.height / 2 - 0.1 });
+      const model = skins?.models[type];
+      const tm = model && skins ? this.modelMeshes(type, t, model, skins.material, max) : this.boxMeshes(type, t, wheelMat, max);
+      for (const im of [tm.body, tm.wheels]) { im.count = 0; im.castShadow = true; im.frustumCulled = false; im.name = `traffic-${type}`; this.scene.add(im); }
+      tm.body.receiveShadow = true;
+      this.disposables.push(tm.body, tm.wheels);
+      this.meshes.set(type, tm);
     }
+  }
+
+  /** The placeholder: a box body and cylinder wheels, positioned like the drivable vehicle's. */
+  private boxMeshes(type: VehicleType, t: VehicleTuning, wheelMat: THREE.Material, max: number): TypeMeshes {
+    const bodyMat = new THREE.MeshStandardNodeMaterial({ color: VEHICLE_COLORS[type], roughness: 0.6, metalness: 0.1 });
+    const bodyGeo = new THREE.BoxGeometry(t.width, t.height, t.length);
+    const wheelWidth = type === 'motorbike' ? 0.12 : 0.2;
+    const wheelGeo = new THREE.CylinderGeometry(t.wheelRadius, t.wheelRadius, wheelWidth, 12).rotateZ(Math.PI / 2);
+    const spots: WheelSpot[] = type === 'motorbike'
+      ? wheelLayout(type, t).filter((_, i) => i % 2 === 0).map((w) => ({ x: 0, z: w.z, steer: false }))
+      : wheelLayout(type, t).map((w) => ({ x: w.x, z: w.z, steer: false }));
+    this.disposables.push(bodyMat, bodyGeo, wheelGeo);
+    // Same rest pose as the drivable vehicle: chassis centre at suspension rest + wheel radius above the wheel mount.
+    const colliderY = t.suspensionRestLength + t.wheelRadius + t.height / 2 - 0.1;
+    return {
+      body: new THREE.InstancedMesh(bodyGeo, bodyMat, Math.max(1, max)),
+      wheels: new THREE.InstancedMesh(wheelGeo, wheelMat, Math.max(1, max * spots.length)),
+      wheelSpots: spots, rideHeight: colliderY, colliderY, radius: t.wheelRadius, wheelbase: 1, modelled: false,
+    };
+  }
+
+  /** The baked model: a body with its origin on the ground and one shared wheel geometry placed at the model's wheel nodes. */
+  private modelMeshes(type: VehicleType, t: VehicleTuning, model: VehicleModel, material: THREE.Material, max: number): TypeMeshes {
+    const steer = steerableWheels(type);
+    const spots = model.wheels.map((w, i) => ({ x: w.position.x, z: w.position.z, steer: steer[i] ?? false }));
+    const zs = spots.map((s) => s.z);
+    return {
+      body: new THREE.InstancedMesh(bodyWithRider(model), material, Math.max(1, max)),
+      wheels: new THREE.InstancedMesh(model.wheels[0]!.geometry, material, Math.max(1, max * spots.length)),
+      wheelSpots: spots, rideHeight: 0, colliderY: t.suspensionRestLength + t.wheelRadius + t.height / 2 - 0.1,
+      radius: model.wheelRadius, wheelbase: Math.max(...zs) - Math.min(...zs) || 1, modelled: true,
+    };
   }
 
   get count(): number { return this.sim.cars.length; }
@@ -433,6 +471,7 @@ export class Traffic {
     const n = Math.max(1, Math.ceil(dt / MAX_SUBSTEP_S));
     for (let i = 0; i < n; i++) this.sim.step(dt / n, player, obstacles);
     const counts = new Map<VehicleType, number>();
+    const turnDt = Math.max(dt, 1 / 60);
     for (const a of this.sim.cars) {
       const tm = this.meshes.get(a.type)!;
       const k = counts.get(a.type) ?? 0; counts.set(a.type, k + 1);
@@ -440,19 +479,29 @@ export class Traffic {
       const y = (ground !== undefined && Number.isFinite(ground) ? ground : a.y) + ROAD_LIFT_M;
       let yaw = this.headings.get(a.id) ?? a.yaw;
       const d = Math.atan2(Math.sin(a.yaw - yaw), Math.cos(a.yaw - yaw));
-      yaw += Math.sign(d) * Math.min(Math.abs(d), TURN_RATE * Math.max(dt, 1 / 60));
+      const turn = Math.sign(d) * Math.min(Math.abs(d), TURN_RATE * turnDt);
+      yaw += turn;
       this.headings.set(a.id, yaw);
       this.q.setFromAxisAngle(this.up, yaw);
       this.p.set(a.x, y + tm.rideHeight, a.z);
       tm.body.setMatrixAt(k, this.m.compose(this.p, this.q, this.one));
-      const r = this.tunings[a.type].wheelRadius;
       const sin = Math.sin(yaw); const cos = Math.cos(yaw);
+      let ws = this.wheelState.get(a.id);
+      if (tm.modelled) {
+        if (!ws) { ws = { spin: 0, steer: 0 }; this.wheelState.set(a.id, ws); }
+        ws.spin = spinStep(ws.spin, a.v, dt, tm.radius);
+        ws.steer += (steerAngle(tm.wheelbase, turn / turnDt, a.v) - ws.steer) * Math.min(1, dt * STEER_EASE);
+        this.qSpin.setFromAxisAngle(this.right, ws.spin);
+        this.qSteer.setFromAxisAngle(this.up, ws.steer);
+      }
       tm.wheelSpots.forEach((w, j) => {
         // Local +X is the vehicle's left, +Z forward; rotate by yaw about +Y.
-        this.p.set(a.x + w.x * cos + w.z * sin, y + r, a.z - w.x * sin + w.z * cos);
-        tm.wheels.setMatrixAt(k * tm.wheelSpots.length + j, this.m.compose(this.p, this.q, this.one));
+        this.p.set(a.x + w.x * cos + w.z * sin, y + tm.radius, a.z - w.x * sin + w.z * cos);
+        let q = this.q;
+        if (tm.modelled) { q = this.qWheel.copy(this.q); if (w.steer) q.multiply(this.qSteer); q.multiply(this.qSpin); }
+        tm.wheels.setMatrixAt(k * tm.wheelSpots.length + j, this.m.compose(this.p, q, this.one));
       });
-      this.syncCollider(a, y + tm.rideHeight, yaw, player);
+      this.syncCollider(a, y + tm.colliderY, yaw, player);
     }
     for (const [type, tm] of this.meshes) {
       const c = counts.get(type) ?? 0;

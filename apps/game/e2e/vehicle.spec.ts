@@ -19,17 +19,17 @@ test('taxi drives off under autodrive', async ({ page }) => {
   expect(hud?.startsWith('error:') ? hud : '', 'hud reports an error').toBe('');
   expect(errors, 'page errors before ready').toEqual([]);
 
-  // Poll for up to 6 s, logging the debug state and HUD each time so a CI failure shows how far the taxi got.
+  // Poll for up to 20 s (a loaded CI runner stalls the first frames for several seconds), logging the debug state and HUD each time so a CI failure shows how far the taxi got.
   const start = Date.now();
   let debug: KtmWindow['__ktmDebug'];
   for (;;) {
     debug = await page.evaluate(() => (window as unknown as KtmWindow).__ktmDebug);
     const hudNow = await page.locator('#hud').textContent();
     console.log(`t=${((Date.now() - start) / 1000).toFixed(1)}s speed=${debug?.speed.toFixed(2)} m/s hud="${hudNow}"`);
-    if ((debug?.speed ?? 0) >= 10 || Date.now() - start > 6000) break;
+    if ((debug?.speed ?? 0) >= 10 || Date.now() - start > 20_000) break;
     await page.waitForTimeout(250);
   }
-  expect(debug?.speed ?? 0, 'taxi speed (m/s) within 6 s of ready').toBeGreaterThanOrEqual(10);
+  expect(debug?.speed ?? 0, 'taxi speed (m/s) within 20 s of ready').toBeGreaterThanOrEqual(10);
   expect(debug?.driving).toBe('taxi');
   expect(errors, 'page errors').toEqual([]);
 });

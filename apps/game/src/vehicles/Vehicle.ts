@@ -2,6 +2,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import * as THREE from 'three/webgpu';
 import type { VehicleTuning, VehicleType } from '@ktm/schema';
 import type { Physics } from '../physics/Physics.ts';
+import { createRiderGeometry, type VehicleModel, type VehicleSkins } from './models.ts';
 
 const DEG = Math.PI / 180;
 
@@ -37,7 +38,7 @@ export interface DriveInput {
 export interface WheelSpec { x: number; z: number; steer: boolean; drive: boolean; }
 interface VisualWheel { ray: number; x: number; pivot: THREE.Group; spin: THREE.Group; }
 
-export const VEHICLE_COLORS: Record<VehicleType, number> = { taxi: 0xf2c14e, tempo: 0x3d7a4a, motorbike: 0x8b1e1e };
+export const VEHICLE_COLORS: Record<VehicleType, number> = { taxi: 0xf2c14e, tempo: 0x3d7a4a, motorbike: 0x8b1e1e, micro: 0xe9e6dc, bus: 0x1f7a3c, truck: 0x2b5fa8 };
 const STEER_RATE = 2.5; // rad/s toward the target angle
 const STOP_MS = 1; // below this forward speed S reverses instead of braking
 const BIKE_TRACK = 0.3;
@@ -64,8 +65,13 @@ export class Vehicle {
   /** Height of the chassis centre above the ground at rest (before suspension sag). */
   private rideHeight: number;
   private disposables: { dispose(): void }[] = [];
+  /** Where a rider sits (motorbike model), a child of the lean pivot so it banks with the bike; undefined for the box fallback and other types. */
+  riderAnchor?: THREE.Object3D;
+  private riderMesh?: THREE.Mesh;
+  /** Show the built-in helmeted rider while occupied; false when the player's own character sits on the bike instead. */
+  ownRider = true;
 
-  constructor(private scene: THREE.Scene, private physics: Physics, readonly type: VehicleType, readonly tuning: VehicleTuning, pos: THREE.Vector3, yaw: number) {
+  constructor(private scene: THREE.Scene, private physics: Physics, readonly type: VehicleType, readonly tuning: VehicleTuning, pos: THREE.Vector3, yaw: number, private skins?: VehicleSkins) {
     const t = tuning;
     const w = physics.world;
     this.connY = -t.height / 2 + 0.1;
@@ -123,6 +129,9 @@ export class Vehicle {
     content.position.y = this.rideHeight;
     this.leanPivot.add(content);
 
+    const model = this.skins?.models[this.type];
+    if (model && this.skins) { this.buildModel(model, this.skins.material, content); return; }
+
     const bodyMat = new THREE.MeshStandardNodeMaterial({ color: VEHICLE_COLORS[this.type], roughness: 0.6, metalness: 0.1 });
     const wheelMat = new THREE.MeshStandardNodeMaterial({ color: 0x1b1b1b, roughness: 0.9 });
     const hubMat = new THREE.MeshStandardNodeMaterial({ color: 0x9a9a9a, roughness: 0.5, metalness: 0.4 });
@@ -145,6 +154,40 @@ export class Vehicle {
       pivot.position.set(v.x, this.connY - this.tuning.suspensionRestLength, this.specs[v.ray]!.z);
       content.add(pivot);
       this.visuals.push({ ...v, pivot, spin });
+    }
+  }
+
+  /** The baked model: one body mesh with its origin on the ground, and a hub-centred wheel mesh per visual wheel, steered and spun by the physics wheels. */
+  private buildModel(model: VehicleModel, material: THREE.Material, content: THREE.Group): void {
+    const root = new THREE.Group();
+    root.name = 'model';
+    root.position.y = -this.rideHeight; // content sits at the chassis centre; the model's origin is on the ground
+    const body = new THREE.Mesh(model.body, material);
+    body.name = 'body'; body.castShadow = true; body.receiveShadow = true;
+    root.add(body);
+    content.add(root);
+    const rays = this.type === 'motorbike' ? [0, 2] : this.specs.map((_, i) => i);
+    rays.forEach((ray, i) => {
+      const w = model.wheels[i];
+      if (!w) return;
+      const pivot = new THREE.Group(); const spin = new THREE.Group();
+      const tyre = new THREE.Mesh(w.geometry, material); tyre.castShadow = true;
+      spin.add(tyre); pivot.add(spin);
+      pivot.position.set(w.position.x, this.connY - this.tuning.suspensionRestLength, w.position.z);
+      content.add(pivot);
+      this.visuals.push({ ray, x: w.position.x, pivot, spin });
+    });
+    if (model.rider) {
+      this.riderAnchor = new THREE.Object3D();
+      this.riderAnchor.name = 'rider';
+      this.riderAnchor.position.set(model.rider.x, model.rider.y - this.rideHeight, model.rider.z);
+      content.add(this.riderAnchor);
+      // The driver: a helmeted figure on the seat while the bike is occupied.
+      const riderGeo = createRiderGeometry();
+      this.riderMesh = new THREE.Mesh(riderGeo, material);
+      this.riderMesh.castShadow = true; this.riderMesh.visible = false;
+      this.riderAnchor.add(this.riderMesh);
+      this.disposables.push(riderGeo);
     }
   }
 
@@ -221,6 +264,7 @@ export class Vehicle {
     const p = this.body.translation(); const r = this.body.rotation();
     this.group.position.set(p.x, p.y, p.z);
     this.group.quaternion.set(r.x, r.y, r.z, r.w);
+    if (this.riderMesh) this.riderMesh.visible = this.occupied && this.ownRider;
     for (const w of this.visuals) {
       const susp = this.ctl.wheelSuspensionLength(w.ray) ?? this.tuning.suspensionRestLength;
       w.pivot.position.y = this.connY - susp;
@@ -253,8 +297,8 @@ export class Vehicle {
 }
 
 export function wheelLayout(type: VehicleType, t: VehicleTuning): WheelSpec[] {
-  const front = t.length / 2 - Math.max(0.35, t.wheelRadius * 1.6);
-  const rear = -front;
+  const front = t.frontAxle ?? t.length / 2 - Math.max(0.35, t.wheelRadius * 1.6);
+  const rear = -(t.rearAxle ?? front);
   const side = (track: number) => track / 2;
   switch (type) {
     case 'tempo': {
@@ -274,7 +318,10 @@ export function wheelLayout(type: VehicleType, t: VehicleTuning): WheelSpec[] {
         { x: -x, z: rear, steer: false, drive: true },
       ];
     }
-    case 'taxi': {
+    case 'taxi':
+    case 'micro':
+    case 'bus':
+    case 'truck': {
       const x = side(t.width - 0.25);
       return [
         { x, z: front, steer: true, drive: false },
