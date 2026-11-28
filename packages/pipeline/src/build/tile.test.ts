@@ -96,3 +96,32 @@ it('drops generated props inside a hero footprint and keeps curated ones', async
   expect(inside).toEqual([{ type: 'tree', x: 400, y: 1350, z: 400, rotY: 0, scale: 1 }]);
   expect(withHero.filter((p) => p.type === 'tree').length).toBeGreaterThan(1);
 });
+
+it('exports foot-class ways to nav.json as lanes 0, speed 5 edges with the ROAD_SPEC width', async () => {
+  const inp = fixtureInputs();
+  const dir = `${inp.outRoot}/x14_y17`;
+  const way = (id: string, highway: string, coordinates: number[][]) => ({ id, kind: 'road', geometry: { type: 'LineString', coordinates }, properties: { highway, borderStart: false, borderEnd: false } });
+  const ways = [
+    way('w1', 'residential', [[100, 100], [200, 100]]),
+    way('w2', 'footway', [[200, 100], [200, 160]]),
+    way('w3', 'path', [[200, 160], [260, 160]]),
+    way('w4', 'pedestrian', [[200, 100], [260, 100]]),
+    way('w5', 'steps', [[260, 100], [260, 130]]),
+    way('w6', 'track', [[260, 130], [300, 130]]),
+  ];
+  writeFileSync(`${inp.featuresDir}/x14_y17.geojsonl`, ways.map((r) => `${JSON.stringify(r)}\n`).join(''));
+  await buildTile('x14_y17', { ...inp, outDir: dir, quiet: true });
+  const nav = Nav.parse(JSON.parse(readFileSync(`${dir}/nav.json`, 'utf8')));
+  const byCls = new Map(nav.edges.map((e) => [e.cls, e]));
+  expect([...byCls.keys()].sort()).toEqual(['footway', 'path', 'pedestrian', 'residential', 'steps']);
+  const widths: Record<string, number> = { footway: 2, path: 1.5, pedestrian: 4, steps: 1.5 };
+  for (const [cls, w] of Object.entries(widths)) {
+    const e = byCls.get(cls)!;
+    expect(e).toMatchObject({ lanes: 0, speed: 5, width: w, oneway: false });
+  }
+  expect(byCls.get('residential')).toMatchObject({ lanes: 2, speed: 25, width: 6 });
+  // Foot ways join the road at shared nodes; every edge endpoint exists and no node is orphaned.
+  const ids = new Set(nav.nodes.map((n) => n.id));
+  for (const e of nav.edges) { expect(ids.has(e.from)).toBe(true); expect(ids.has(e.to)).toBe(true); }
+  expect(nav.nodes).toHaveLength(6);
+});

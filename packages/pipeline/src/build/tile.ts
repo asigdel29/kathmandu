@@ -12,7 +12,7 @@ import { buildingHeight, extrudeBuilding, roofKind } from './buildings.ts';
 import { flattenUnderRoads, meshHeightAt, type RoadLine } from './flatten.ts';
 import { FACADE_REACH_M, MAX_PROPS_PER_TILE, alongPolyline, facadeProps, pointInRing, roofProps, streetProps, treesInRing, utilityProps, type RoadInfo, type XZ } from './props.ts';
 import { capProps } from './budget.ts';
-import { ROAD_LIFT, ROAD_SAMPLE_M, navNodeId, ribbon, roadSpec, sampleRoad, type RoadSpec } from './roads.ts';
+import { ROAD_LIFT, ROAD_SAMPLE_M, NAV_FOOT_CLASSES, navNodeId, ribbon, roadSpec, sampleRoad, type RoadSpec } from './roads.ts';
 import { LANDCOVER, terrainMesh, type GreenArea } from './terrain.ts';
 import { waterMesh } from './water.ts';
 
@@ -247,7 +247,9 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
     const t = f.properties;
     ribbon(sampled, spec.width, yAt, mats[spec.material], ROAD_LIFT);
     roadCount++;
-    if (spec.vehicle) {
+    // Vehicle roads and foot-class ways are walkable graph edges; foot ways carry lanes 0 so traffic skips them.
+    const foot = !spec.vehicle && NAV_FOOT_CLASSES.has(String(t.highway));
+    if (spec.vehicle || foot) {
       const ids: { nid: string; node: NavNode }[] = [];
       pts.forEach(([x, z], i) => {
         const nid = navNodeId(origin.x + x, origin.z + z);
@@ -271,7 +273,7 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
           if (!prev) nodes.set(n.nid, { ...n.node });
           else prev.border ||= n.node.border;
         }
-        edges.push({ from: a.nid, to: b.nid, lanes: Math.max(1, spec.lanes), oneway, speed: spec.speed, cls: String(t.highway), width: spec.width });
+        edges.push({ from: a.nid, to: b.nid, lanes: foot ? 0 : Math.max(1, spec.lanes), oneway, speed: foot ? 5 : spec.speed, cls: String(t.highway), width: spec.width });
       }
     }
     if (spec.lights) generated.push(...alongPolyline(pts, 30, -(spec.width / 2 + 0.8), yAt));

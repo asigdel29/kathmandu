@@ -5,7 +5,7 @@ import type { Physics } from '../physics/Physics.ts';
 import { VEHICLE_COLORS, wheelLayout } from '../vehicles/Vehicle.ts';
 import { IDM, idmAccel, idmStep } from './idm.ts';
 import { laneCentre } from './lane.ts';
-import type { Exit, GraphEdge, NavGraph } from './NavGraph.ts';
+import { isDrivable, type Exit, type GraphEdge, type NavGraph } from './NavGraph.ts';
 
 interface XZ { x: number; z: number }
 
@@ -132,7 +132,7 @@ export class TrafficSim {
     for (const l of lanes.values()) l.sort((p, q) => p.s - q.s);
     const near = new Map<string, { a: TrafficCar; d: number; leaving: boolean }[]>();
     const reg = (node: string, a: TrafficCar, d: number, leaving: boolean) => {
-      if (d >= this.opts.yieldRadius || this.graph.degree(node) < 3) return;
+      if (d >= this.opts.yieldRadius || this.graph.driveDegree(node) < 3) return;
       const l = near.get(node); const item = { a, d, leaving };
       if (l) l.push(item); else near.set(node, [item]);
     };
@@ -177,14 +177,14 @@ export class TrafficSim {
     }
   }
 
-  /** Edges with any part within the spawn radius, weighted by length and speed so main roads carry more traffic. */
+  /** Drivable edges (not foot-class, lanes > 0) with any part within the spawn radius, weighted by length and speed so main roads carry more traffic. */
   private spawnCandidates(player: XZ): NonNullable<TrafficSim['candidates']> {
     const c = this.candidates;
     if (c && c.version === this.graph.version && Math.hypot(c.at.x - player.x, c.at.z - player.z) < 20) return c;
     const edges: GraphEdge[] = []; const cum: number[] = []; let total = 0;
     const r = this.opts.spawnRadius;
     for (const e of this.graph.edges()) {
-      if (e.length < MIN_SPAWN_EDGE_M) continue;
+      if (!isDrivable(e) || e.length < MIN_SPAWN_EDGE_M) continue;
       const a = this.graph.node(e.from)!; const b = this.graph.node(e.to)!;
       if (segmentDistance(player, a, b) > r) continue;
       total += e.length * (e.speed / 25);
@@ -242,7 +242,8 @@ export class TrafficSim {
   /** Pick how to leave the node at the end of `via`: no U-turn unless it is a dead end; straighter and faster roads are likelier. */
   private chooseExit(via: Exit): Exit | undefined {
     const node = via.forward ? via.edge.to : via.edge.from;
-    const all = this.graph.exits(node);
+    // Footways and paths are in the graph for pedestrians; vehicles never turn onto them.
+    const all = this.graph.exits(node).filter((x) => isDrivable(x.edge));
     const onward = all.filter((x) => x.edge !== via.edge);
     const options = onward.length > 0 ? onward : all;
     if (options.length === 0) return undefined;
