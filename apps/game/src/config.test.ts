@@ -31,3 +31,8 @@ it('parses post-processing params', () => {
   expect(readConfig('?freeze=1&quality=med', '/world/').quality).toBe('med');
   expect(readConfig('?taa=0&wet=1', '/world/')).toMatchObject({ taa: false, wet: true });
 });
+it('parses the debug mission param and whether a tile was given', () => {
+  expect(readConfig('?mission=thamel-to-patan&autodrive=1', '/world/')).toMatchObject({ mission: 'thamel-to-patan', autodrive: true, tileGiven: false });
+  expect(readConfig('?tile=x15_y18', '/world/')).toMatchObject({ mission: undefined, tileGiven: true });
+  expect(readConfig('?mission=', '/world/').mission).toBeUndefined();
+});
