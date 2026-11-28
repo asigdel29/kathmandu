@@ -1,9 +1,9 @@
 import * as THREE from 'three/webgpu';
 
 const DIGITS = ['Digit0', 'Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9'];
-const TRACKED = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'Space', 'KeyE', 'KeyP', 'KeyH', 'KeyN', 'KeyJ', 'KeyF', 'Backspace', ...DIGITS]);
+const TRACKED = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'Space', 'KeyE', 'KeyP', 'KeyM', 'KeyH', 'KeyN', 'KeyJ', 'KeyF', 'Backspace', ...DIGITS]);
 /** One-shot keys read every frame rather than by a physics step, so they are cleared every frame. */
-const PER_FRAME = ['KeyP', 'KeyH', 'KeyN', 'KeyJ', 'KeyF', 'Backspace', ...DIGITS];
+const PER_FRAME = ['KeyP', 'KeyM', 'KeyH', 'KeyN', 'KeyJ', 'KeyF', 'Backspace', ...DIGITS];
 
 export interface DriveAxes { throttle: number; steer: number; handbrake: boolean }
 
@@ -40,6 +40,7 @@ export class Input {
   get jumpPressed(): boolean { return this.pressed.has('Space'); }
   get interactPressed(): boolean { return this.pressed.has('KeyE'); }
   get pausePressed(): boolean { return this.pressed.has('KeyP'); }
+  get mapPressed(): boolean { return this.pressed.has('KeyM'); }
   get hornPressed(): boolean { return this.pressed.has('KeyH'); }
   /** N toggles sound (M is reserved for the map). */
   get mutePressed(): boolean { return this.pressed.has('KeyN'); }
@@ -55,6 +56,9 @@ export class Input {
     return i < 0 ? undefined : i;
   }
   get pointerLocked(): boolean { return this.locked; }
+
+  /** Give the mouse back, e.g. while the map screen is open. */
+  releasePointer(): void { if (this.locked) document.exitPointerLock(); }
 
   /** Camera-relative unit vector on the XZ plane; zero when no movement key is held. */
   moveVector(camera: THREE.Camera): THREE.Vector3 {
@@ -85,6 +89,6 @@ export class Input {
     this.lookDelta.x = 0;
     this.lookDelta.y = 0;
     if (!keepPresses) this.pressed.clear();
-    else for (const k of PER_FRAME) this.pressed.delete(k); // pause, horn, mute and the mission keys are read every frame, not by a physics step
+    else for (const k of PER_FRAME) this.pressed.delete(k); // pause, map, horn, mute and the mission keys are read every frame, not by a physics step
   }
 }
