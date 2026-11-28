@@ -3,6 +3,7 @@ import type { TileId } from '@ktm/geo';
 import palette from '../../../../world/style/palette.json';
 import type { GraphEdge, NavGraph } from '../traffic/NavGraph.ts';
 import { makePath, pointAt, resolveOverlaps, stepWalker, type Path, type Walker, type XZ } from './steer.ts';
+import { FIGURE_POOL_DEFAULT, FigurePool, type FigurePerson } from './PedFigures.ts';
 
 /** Edge classes that are walked down the middle; every other class is a road, walked along both edges. */
 export const FOOT_CLASSES: ReadonlySet<string> = new Set(['footway', 'path', 'pedestrian', 'steps']);
@@ -393,16 +394,21 @@ export interface PedestriansOptions extends Partial<PedOptions> {
   /** Ground height under a point (world Y), when known; otherwise the height interpolated between nav nodes is used. */
   groundY?: (x: number, z: number) => number | undefined;
   zoneOf?: (tile: TileId) => string | undefined;
+  /** How many of the people nearest the player are drawn as animated figures; the rest stay capsules. */
+  figures?: number;
 }
 
-/** Capsule placeholder, 0.35 m wide and 1.7 m tall, until the character model and its animation set exist. */
+/** Capsule placeholder, 0.35 m wide and 1.7 m tall, for people without a figure. */
 const BODY_RADIUS_M = 0.175;
 const BODY_HEIGHT_M = 1.7;
 const MAX_SUBSTEP_S = 0.05;
 const TURN_RATE = 6; // rad/s
 const COLOURS = Object.values(palette as Record<string, string>).filter((c) => c !== (palette as Record<string, string>).asphalt);
 
-/** Renders the pedestrian simulation as instanced capsules in palette colours. */
+/**
+ * Renders the pedestrian simulation: the people nearest the player as animated character figures (FigurePool), everyone
+ * else as instanced capsules in palette colours.
+ */
 export class Pedestrians {
   readonly sim: PedSim;
   private mesh: THREE.InstancedMesh;
@@ -411,12 +417,14 @@ export class Pedestrians {
   private colours: THREE.Color[];
   private headings = new Map<number, number>();
   private groundY?: (x: number, z: number) => number | undefined;
+  private figures: FigurePool;
   private m = new THREE.Matrix4(); private q = new THREE.Quaternion(); private p = new THREE.Vector3(); private one = new THREE.Vector3(1, 1, 1);
   private up = new THREE.Vector3(0, 1, 0);
 
   constructor(private scene: THREE.Scene, graph: NavGraph, opts: PedestriansOptions = {}) {
-    const { groundY, zoneOf, ...simOpts } = opts;
+    const { groundY, zoneOf, figures, ...simOpts } = opts;
     this.groundY = groundY;
+    this.figures = new FigurePool(scene, figures ?? FIGURE_POOL_DEFAULT);
     this.sim = new PedSim(graph, simOpts, zoneOf);
     const max = Math.max(1, { ...PED_DEFAULTS, ...simOpts }.max);
     this.geo = new THREE.CapsuleGeometry(BODY_RADIUS_M, BODY_HEIGHT_M - 2 * BODY_RADIUS_M, 4, 8);
@@ -435,31 +443,44 @@ export class Pedestrians {
   update(dt: number, player: XZ, cars: readonly PedCar[] = []): void {
     const n = Math.max(1, Math.ceil(dt / MAX_SUBSTEP_S));
     for (let i = 0; i < n; i++) this.sim.step(dt / n, player, cars);
-    const live = new Set<number>();
-    this.sim.peds.forEach((a, k) => {
-      live.add(a.id);
+    const people: FigurePerson[] = this.sim.peds.map((a) => {
       const ground = this.groundY?.(a.x, a.z);
       const y = ground !== undefined && Number.isFinite(ground) ? ground : a.y;
-      let yaw = this.headings.get(a.id) ?? Math.atan2(a.vx, a.vz);
-      if (Math.hypot(a.vx, a.vz) > 0.2) {
-        const want = Math.atan2(a.vx, a.vz);
-        const d = Math.atan2(Math.sin(want - yaw), Math.cos(want - yaw));
-        yaw += Math.sign(d) * Math.min(Math.abs(d), TURN_RATE * Math.max(dt, 1 / 60));
-      }
-      this.headings.set(a.id, yaw);
-      this.q.setFromAxisAngle(this.up, yaw);
-      this.p.set(a.x, y + BODY_HEIGHT_M / 2, a.z);
+      return { id: a.id, x: a.x, y, z: a.z, yaw: this.turn(a, dt), vx: a.vx, vz: a.vz, speed: a.speed, stopped: a.stopped };
+    });
+    const live = new Set(people.map((a) => a.id));
+    for (const id of this.headings.keys()) if (!live.has(id)) this.headings.delete(id);
+    this.figures.update(dt, people, player);
+    // Capsules are compacted: only people without a figure take an instance slot.
+    let k = 0;
+    for (const a of people) {
+      if (this.figures.has(a.id)) continue;
+      this.q.setFromAxisAngle(this.up, a.yaw);
+      this.p.set(a.x, a.y + BODY_HEIGHT_M / 2, a.z);
       this.mesh.setMatrixAt(k, this.m.compose(this.p, this.q, this.one));
       this.mesh.setColorAt(k, this.colours[a.id % this.colours.length]!);
-    });
-    for (const id of this.headings.keys()) if (!live.has(id)) this.headings.delete(id);
-    this.mesh.count = this.sim.peds.length;
+      k++;
+    }
+    this.mesh.count = k;
     this.mesh.instanceMatrix.needsUpdate = true;
     if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+  }
+
+  /** Heading of a person, turned towards their velocity at most TURN_RATE rad/s. */
+  private turn(a: Ped, dt: number): number {
+    let yaw = this.headings.get(a.id) ?? Math.atan2(a.vx, a.vz);
+    if (Math.hypot(a.vx, a.vz) > 0.2) {
+      const want = Math.atan2(a.vx, a.vz);
+      const d = Math.atan2(Math.sin(want - yaw), Math.cos(want - yaw));
+      yaw += Math.sign(d) * Math.min(Math.abs(d), TURN_RATE * Math.max(dt, 1 / 60));
+    }
+    this.headings.set(a.id, yaw);
+    return yaw;
   }
 
   dispose(): void {
     this.scene.remove(this.mesh);
     this.mesh.dispose(); this.geo.dispose(); this.mat.dispose();
+    this.figures.dispose();
   }
 }
