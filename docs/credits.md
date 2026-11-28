@@ -61,3 +61,12 @@ Surface photographs from Poly Haven, released under the Creative Commons CC0 1.0
 | `road-asphalt.jpg` | asphalt roads | https://polyhaven.com/a/asphalt_02 | Rob Tuytel | CC0 1.0 |
 | `road-dirt.jpg` | unpaved roads, paths outside the `*-core` zones | https://polyhaven.com/a/dirt_floor | eye-candy.xyz | CC0 1.0 |
 | `road-cobble.jpg` | paths in the `*-core` zones | https://polyhaven.com/a/cobblestone_floor_01 | Rob Tuytel | CC0 1.0 |
+
+## Characters (`apps/game/public/models/characters/*.glb`)
+
+Bodies and animation clips come from two Quaternius packs released under the Creative Commons CC0 1.0 Universal public domain dedication (https://creativecommons.org/publicdomain/zero/1.0/). Attribution is not required; the author is listed here anyway. Both packs share one 65-bone humanoid skeleton, so the clips bind to the bodies by bone name. Everything else (clothes, skin tones, topi, skirts and tunics) is original work built by `tools/characters/build.py` (`sh tools/characters/fetch.sh <dir>` downloads the two packs; see `tools/characters/README.md`), covered by the repository's MIT licence.
+
+| Asset | Source | Author | Licence | Changes |
+|---|---|---|---|---|
+| Base bodies (`Superhero_Male`, `Superhero_Female`) and the `Hair_Buzzed`, `Hair_SimpleParted`, `Hair_Beard`, `Hair_Long`, `Hair_Buns` meshes used by `player`, `ped_0`..`ped_3` | https://quaternius.itch.io/universal-base-characters (Universal Base Characters, Standard) | Quaternius | CC0 1.0 | slimmed torso, arms and legs; pedestrian bodies decimated to about 5.6k triangles; colour texture re-baked per variant at 1024² with new skin tone and clothes (the pack texture is only the source of the skin detail); normal and roughness maps dropped; hair recoloured and skinned to the head bone; scaled to 0.93 |
+| Animation clips `Idle_Loop`, `Walk_Loop`, `Jog_Fwd_Loop`, `Sprint_Loop`, `Jump_Start`, `Jump_Loop`, `Jump_Land`, `Sitting_Enter`, `Driving_Loop`, `Sitting_Idle_Loop` | https://quaternius.com/packs/universalanimationlibrary.html (Universal Animation Library, Standard; also https://opengameart.org/content/universal-animation-library) | Quaternius | CC0 1.0 | renamed to `idle`, `walk`, `run`, `sprint`, `jump_start`, `jump_loop`, `jump_land`, `enter`, `drive`, `sit`; resampled by the glTF exporter; the pedestrian models carry `idle` and `walk` only |

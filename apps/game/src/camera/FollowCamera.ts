@@ -6,6 +6,11 @@ export type CameraMode = 'foot' | 'drive';
 
 const FOLLOW_DISTANCE = 2.4;
 const EYE_HEIGHT = 1.6;
+/**
+ * On foot the orbit centre sits this far above the capsule centre (the feet are 0.9 m below it), so the camera, which
+ * rises by sin(pitch) x FOLLOW_DISTANCE above that point, is 1.6 m over the ground and the whole figure is in frame.
+ */
+const FOOT_LOOK_HEIGHT = 0.1;
 const DRIVE_DISTANCE = 6.5;
 const DRIVE_HEIGHT = 2.4;
 const DRIVE_LOOK_HEIGHT = 1.0;
@@ -80,7 +85,7 @@ export class FollowCamera {
     } else {
       this.yaw -= input.lookDelta.x * LOOK_RAD_PER_PX;
       this.pitch = THREE.MathUtils.clamp(this.pitch + input.lookDelta.y * LOOK_RAD_PER_PX, PITCH_MIN, PITCH_MAX);
-      this.look.set(target.x, target.y + EYE_HEIGHT, target.z);
+      this.look.set(target.x, target.y + FOOT_LOOK_HEIGHT, target.z);
       const cp = Math.cos(this.pitch);
       this.desired.set(Math.sin(this.yaw) * cp, Math.sin(this.pitch), Math.cos(this.yaw) * cp).multiplyScalar(FOLLOW_DISTANCE).add(this.look);
     }
