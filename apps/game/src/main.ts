@@ -1,13 +1,16 @@
 import * as THREE from 'three/webgpu';
-import { BASE_ELEVATION_M, lonLatToLocal, TILE_SIZE_M, tileOrigin } from '@ktm/geo';
+import { BASE_ELEVATION_M, inGrid, lonLatToLocal, TILE_SIZE_M, tileId, tileIndexAt, tileOrigin } from '@ktm/geo';
 import { VehicleTunings, type VehicleType } from '@ktm/schema';
 import vehiclesJson from '../../../world/vehicles.json';
+import { GameAudio, TempleSources, type AudioState } from './audio/Audio.ts';
 import { FollowCamera } from './camera/FollowCamera.ts';
 import { readConfig } from './config.ts';
 import { Input } from './input/Input.ts';
 import { createFacadeMaterial, createNightUniform } from './materials/facade.ts';
+import { uniform } from 'three/tsl';
 import { Physics } from './physics/Physics.ts';
 import { Character } from './player/Character.ts';
+import { IdleTracker, wetness } from './post/quality.ts';
 import { createRenderer } from './renderer.ts';
 import { loadResume, type SaveData, type SaveStorage, startAutosave } from './state/Save.ts';
 import { Hud } from './ui/Hud.ts';
@@ -18,12 +21,13 @@ import { HeroLoader, heroSpawn } from './world/HeroLoader.ts';
 import { loadManifest } from './world/manifest.ts';
 import { PropsRenderer } from './world/PropsRenderer.ts';
 import { Sky } from './world/Sky.ts';
-import { TileLoader } from './world/TileLoader.ts';
+import { StreetLights } from './world/StreetLights.ts';
+import { TileLoader, createSurfaceMaterials } from './world/TileLoader.ts';
 import { TileStreamer } from './world/TileStreamer.ts';
 import { NavGraph } from './traffic/NavGraph.ts';
 import { Traffic } from './traffic/Traffic.ts';
 
-interface KtmDebug { speed: number; speedKmh: number; driving: VehicleType | null; vehicles: number; trafficCount: number }
+interface KtmDebug { speed: number; speedKmh: number; driving: VehicleType | null; vehicles: number; trafficCount: number; audio?: AudioState; temples: number }
 declare global { interface Window { __ktmReady?: boolean; __ktm?: unknown; __ktmDebug?: KtmDebug } }
 
 const STEP = 1 / 60;
@@ -56,17 +60,19 @@ async function main(): Promise<void> {
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0xd9c7a8, 0.00012);
   const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 20000);
-  const { renderer, post } = await createRenderer(scene, camera);
+  const night = createNightUniform();
+  const { renderer, post } = await createRenderer(scene, camera, night, { quality: config.quality, taa: config.taa });
   document.body.appendChild(renderer.domElement);
 
-  const sky = new Sky(scene, timeOfDay);
+  const sky = new Sky(scene, renderer, timeOfDay);
   const physics = await Physics.create();
   const clock = new Clock(timeOfDay, { frozen: config.freeze });
-  const night = createNightUniform();
   night.value = nightAmount(clock.time);
+  const wet = uniform(wetness(config.wet, night.value));
   const facade = createFacadeMaterial(night);
-  const loader = new TileLoader(config.worldBase, manifest, facade);
+  const loader = new TileLoader(config.worldBase, manifest, facade, createSurfaceMaterials(`${import.meta.env.BASE_URL}textures/`, wet));
   const props = new PropsRenderer(scene, night);
+  const streetLights = new StreetLights(scene, () => props.lamps());
   const streamer = new TileStreamer(scene, physics, props, loader);
   const heroes = new HeroLoader(scene, config.worldBase, manifest, (x, z) => streamer.heightAt(x, z));
   const target = config.hero ? manifest.heroes[config.hero] : undefined;
@@ -81,8 +87,13 @@ async function main(): Promise<void> {
   const input = new Input(renderer.domElement);
   const follow = new FollowCamera(camera, config.view);
   const hud = new Hud(document.getElementById('hud')!);
-  const debug: KtmDebug = { speed: 0, speedKmh: 0, driving: null, vehicles: 0, trafficCount: 0 };
+  const debug: KtmDebug = { speed: 0, speedKmh: 0, driving: null, vehicles: 0, trafficCount: 0, temples: 0 };
   window.__ktmDebug = debug;
+  // Sound stays silent until the first key or pointer press (browser autoplay rule).
+  const audio = new GameAudio(camera, scene, `${import.meta.env.BASE_URL}audio/`);
+  audio.armOnGesture();
+  debug.audio = audio.state;
+  const temples = new TempleSources();
 
   await streamer.update(start, true);
   // Without an explicit spawn, start on the street node nearest the tile centre rather than inside a block.
@@ -161,7 +172,9 @@ async function main(): Promise<void> {
   debug.driving = startVehicle ?? null;
   await heroes.update(streamer.loaded());
   debug.trafficCount = traffic?.count ?? 0;
-  window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic };
+  window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic, audio, temples, streetLights, post };
+  streetLights.update(1, start, night.value); // lamps on before the first render, so the lit pipelines are compiled in the warm-up
+  await facade.userData.texturesReady;
   // Warm-up: render until the frame time settles (pipeline compiles and temporal history allocation happen in
   // the first frames) before reporting ready, so the first driven frames are not one long stall.
   follow.update(0, startVehicle ? vehicles[vehicles.length - 1]!.group.position : player.position, input, lookAt, yawTowards(start, lookAt));
@@ -172,6 +185,7 @@ async function main(): Promise<void> {
     const now = performance.now(); const took = now - prevFrame; prevFrame = now;
     if (i >= 2 && took < WARM_FRAME_MS) break;
   }
+  post.warm(); // compile the depth-of-field and driving-blur variants now rather than mid-play
   window.__ktmReady = true;
 
   // Autosave every few seconds and whenever the tab is hidden or shown again.
@@ -187,6 +201,9 @@ async function main(): Promise<void> {
   let acc = 0;
   let last = performance.now();
   const focus = new THREE.Vector3();
+  const idle = new IdleTracker();
+  const prevFocus = new THREE.Vector3().copy(start);
+  const prevCamQ = new THREE.Quaternion();
   const frame = (now: number) => {
     // Physics runs in fixed steps; the clock follows wall time so slow frames do not slow the day.
     const frameDt = Math.max(0, (now - last) / 1000);
@@ -229,14 +246,27 @@ async function main(): Promise<void> {
     clock.advance(frameDt);
     sky.setTime(clock.time);
     night.value = nightAmount(clock.time);
+    wet.value = wetness(config.wet, night.value);
     sky.update(focus);
+    streetLights.update(frameDt, focus, night.value);
     void streamer.update(focus);
     void heroes.update(streamer.loaded());
     const speed = car ? Math.abs(car.speedMs) : 0;
     debug.speed = speed; debug.speedKmh = msToKmh(speed); debug.driving = car ? car.type : null; debug.vehicles = vehicles.length;
     debug.trafficCount = traffic?.count ?? 0;
+    if (input.mutePressed) audio.toggleMute();
+    temples.sync(streamer.loaded().values());
+    const at = tileIndexAt(focus.x, focus.z);
+    const zone = inGrid(at.i, at.j) ? manifest.tiles[tileId(at.i, at.j)]?.zone : undefined;
+    audio.update(dt, { position: focus, zone, driving: car !== null, speedMs: speed, temples: temples.all, horn: input.hornPressed });
+    debug.audio = audio.state; debug.temples = temples.all.length;
     hud.update(dt, focus, clock.time, clock.paused, car ? msToKmh(car.speedMs) : undefined, traffic?.count);
+    // Idle = the player and the camera are both still (depth of field fades in after 3 s of that).
+    const moving = focus.distanceTo(prevFocus) > 0.05 * Math.max(frameDt, 1e-3) || camera.quaternion.angleTo(prevCamQ) > 1e-4 || input.lookDelta.x !== 0 || input.lookDelta.y !== 0;
+    idle.update(frameDt, moving);
+    prevFocus.copy(focus); prevCamQ.copy(camera.quaternion);
     input.endFrame(!config.freeze && steps === 0);
+    post.update({ focusDistance: camera.position.distanceTo(focus), idleSeconds: idle.seconds, driving: car !== null, speedKmh: car ? msToKmh(speed) : 0, followCamera: config.view === 'follow', night: night.value }, frameDt * 1000);
     post.render();
   };
   renderer.setAnimationLoop(frame);
