@@ -22,3 +22,12 @@ it('enables traffic unless traffic=0', () => {
   expect(readConfig('?traffic=1', '/world/').traffic).toBe(true);
   expect(readConfig('?traffic=0', '/world/').traffic).toBe(false);
 });
+it('parses post-processing params', () => {
+  expect(readConfig('', '/world/')).toMatchObject({ quality: undefined, taa: true, wet: false });
+  expect(readConfig('?quality=low', '/world/').quality).toBe('low');
+  expect(readConfig('?quality=ultra', '/world/').quality).toBeUndefined();
+  // scripted captures are pinned to high
+  expect(readConfig('?freeze=1', '/world/').quality).toBe('high');
+  expect(readConfig('?freeze=1&quality=med', '/world/').quality).toBe('med');
+  expect(readConfig('?taa=0&wet=1', '/world/')).toMatchObject({ taa: false, wet: true });
+});
