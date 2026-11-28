@@ -15,7 +15,8 @@ it('parses vehicle params', () => {
   expect(readConfig('?vehicle=taxi&autodrive=1', '/world/')).toMatchObject({ vehicle: 'taxi', autodrive: true });
   expect(readConfig('?vehicle=motorbike', '/world/')).toMatchObject({ vehicle: 'motorbike', autodrive: false });
   expect(readConfig('', '/world/')).toMatchObject({ vehicle: undefined, autodrive: false });
-  expect(readConfig('?vehicle=bus&autodrive=yes', '/world/')).toMatchObject({ vehicle: undefined, autodrive: false });
+  expect(readConfig('?vehicle=bus', '/world/')).toMatchObject({ vehicle: 'bus' });
+  expect(readConfig('?vehicle=hovercraft&autodrive=yes', '/world/')).toMatchObject({ vehicle: undefined, autodrive: false });
 });
 it('enables traffic unless traffic=0', () => {
   expect(readConfig('', '/world/').traffic).toBe(true);

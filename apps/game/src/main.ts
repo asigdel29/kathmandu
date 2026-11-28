@@ -13,6 +13,7 @@ import { createRenderer } from './renderer.ts';
 import { Hud } from './ui/Hud.ts';
 import { fallbackSpawns, fixedSteps, nearestWithin, propSpawns, yawTowards } from './vehicles/Garage.ts';
 import { msToKmh, Vehicle } from './vehicles/Vehicle.ts';
+import { createVehicleMaterial, loadVehicleModels, type VehicleSkins } from './vehicles/models.ts';
 import { Clock, nightAmount } from './world/Clock.ts';
 import { HeroLoader, heroSpawn } from './world/HeroLoader.ts';
 import { loadManifest } from './world/manifest.ts';
@@ -54,6 +55,8 @@ async function main(): Promise<void> {
   const night = createNightUniform();
   night.value = nightAmount(clock.time);
   const facade = createFacadeMaterial(night);
+  // Baked vehicle models (public/models/vehicles/<type>.glb); a type without one keeps its box.
+  const skins: VehicleSkins = { models: await loadVehicleModels(`${import.meta.env.BASE_URL}models/vehicles/`), material: createVehicleMaterial(night) };
   const loader = new TileLoader(config.worldBase, manifest, facade);
   const props = new PropsRenderer(scene, night);
   const streamer = new TileStreamer(scene, physics, props, loader);
@@ -107,7 +110,7 @@ async function main(): Promise<void> {
   const navTiles = () => [...streamer.loaded().values()].filter((t) => t.lod === 0);
   graph.sync(navTiles());
   const traffic = config.traffic
-    ? new Traffic(scene, physics, graph, tunings.vehicles, { groundY: (x, z) => { const h = streamer.heightAt(x, z); return h === undefined ? undefined : h - BASE_ELEVATION_M; } })
+    ? new Traffic(scene, physics, graph, tunings.vehicles, { skins, groundY: (x, z) => { const h = streamer.heightAt(x, z); return h === undefined ? undefined : h - BASE_ELEVATION_M; } })
     : undefined;
   traffic?.update(0, start);
 
@@ -116,7 +119,7 @@ async function main(): Promise<void> {
   const spawnTiles = [...streamer.loaded().values()].flatMap((t) => (t.lod === 0 && t.props ? [{ origin: tileOrigin(t.id), props: t.props.props }] : []));
   const spawns = propSpawns(spawnTiles, start);
   for (const s of spawns.length > 0 ? spawns : fallbackSpawns(start, lookAt)) {
-    vehicles.push(new Vehicle(scene, physics, s.type, tunings.vehicles[s.type], new THREE.Vector3(s.x, groundY(s.x, s.z), s.z), s.yaw));
+    vehicles.push(new Vehicle(scene, physics, s.type, tunings.vehicles[s.type], new THREE.Vector3(s.x, groundY(s.x, s.z), s.z), s.yaw, skins));
   }
 
   let driving: Vehicle | null = null;
@@ -134,7 +137,7 @@ async function main(): Promise<void> {
     follow.setMode('foot', v.yaw);
   };
   if (config.vehicle) {
-    const v = new Vehicle(scene, physics, config.vehicle, tunings.vehicles[config.vehicle], new THREE.Vector3(start.x, groundY(start.x, start.z), start.z), yawTowards(start, lookAt));
+    const v = new Vehicle(scene, physics, config.vehicle, tunings.vehicles[config.vehicle], new THREE.Vector3(start.x, groundY(start.x, start.z), start.z), yawTowards(start, lookAt), skins);
     vehicles.push(v);
     enter(v);
   }

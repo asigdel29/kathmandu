@@ -10,6 +10,9 @@ const SPECS: Record<VehicleType, TrafficSpec> = {
   taxi: { length: 4, width: 1.7, maxSpeedKmh: 90 },
   tempo: { length: 3.2, width: 1.2, maxSpeedKmh: 45 },
   motorbike: { length: 2, width: 0.6, maxSpeedKmh: 80 },
+  micro: { length: 4.6, width: 1.7, maxSpeedKmh: 80 },
+  bus: { length: 9.8, width: 2.45, maxSpeedKmh: 60 },
+  truck: { length: 7.2, width: 2.35, maxSpeedKmh: 60 },
 };
 
 /** Deterministic PRNG so spawn tests are repeatable. */

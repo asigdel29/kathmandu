@@ -7,3 +7,4 @@ data/
 .env
 apps/game/dist/
 apps/game/public/world
+__pycache__/
