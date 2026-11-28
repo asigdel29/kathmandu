@@ -3,6 +3,7 @@ import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { BASE_ELEVATION_M, HEIGHTMAP_N, TILE_SIZE_M, inGrid, parseTileId, tileBounds, tileId, tileOrigin } from '@ktm/geo';
 import { Nav, PropsFile, TileMeta } from '@ktm/schema';
+import { MAX_PROPS_PER_TILE } from '../build/props.ts';
 
 export interface ValidateResult { ok: boolean; errors: string[]; warnings: string[] }
 export interface ValidateOptions { neighborNav?: (id: string) => Nav | undefined }
@@ -101,6 +102,7 @@ export async function validateTile(dir: string, opts: ValidateOptions = {}): Pro
   }
 
   // props
+  if (props.length >= MAX_PROPS_PER_TILE) errors.push(`props: ${props.length} props, the budget is under ${MAX_PROPS_PER_TILE}`);
   const badProps: string[] = [];
   props.forEach((p, k) => {
     const inXZ = p.x >= -5 && p.x <= TILE_SIZE_M + 5 && p.z >= -5 && p.z <= TILE_SIZE_M + 5;
