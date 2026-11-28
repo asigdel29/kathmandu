@@ -20,6 +20,10 @@ export interface Config {
   taa: boolean;
   /** `wet=1`: wet asphalt at any hour. */
   wet: boolean;
+  /** `tile=` was in the URL (otherwise `tile` is the default). */
+  tileGiven: boolean;
+  /** Debug: accept this mission id at ready and spawn at its start (missions/debug.ts). */
+  mission?: string;
 }
 
 export function readConfig(search: string, worldBase: string): Config {
@@ -44,5 +48,7 @@ export function readConfig(search: string, worldBase: string): Config {
     quality: parseQuality(q.get('quality')) ?? (q.get('freeze') === '1' || q.get('autodrive') === '1' ? 'high' : undefined),
     taa: q.get('taa') !== '0',
     wet: q.get('wet') === '1',
+    tileGiven: q.has('tile'),
+    mission: q.get('mission') || undefined,
   };
 }
