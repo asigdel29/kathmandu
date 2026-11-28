@@ -27,12 +27,14 @@ export const Overrides = z.object({
 }).strict();
 export type Overrides = z.infer<typeof Overrides>;
 
-export const PropType = z.enum(['streetlight', 'tree', 'water_tank', 'rebar', 'powerpole', 'shrine', 'sign', 'awning', 'billboard', 'prayer_flags', 'taxi_spawn', 'ped_spawn']);
+export const PropType = z.enum(['streetlight', 'tree', 'water_tank', 'rebar', 'powerpole', 'shrine', 'sign', 'awning', 'billboard', 'prayer_flags', 'shutter', 'wires', 'taxi_spawn', 'ped_spawn']);
 export const Prop = z.object({
   type: PropType,
   x: z.number(), y: z.number(), z: z.number(),
   rotY: z.number().default(0),
   scale: z.number().positive().default(1),
+  /** Slope in radians about the prop's local X axis (positive rises along +Z). Only `wires` uses it. */
+  pitch: z.number().optional(),
 });
 export const PropsFile = z.object({ props: z.array(Prop) });
 export type PropsFile = z.infer<typeof PropsFile>;
