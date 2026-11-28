@@ -14,7 +14,7 @@ export async function createRenderer(scene: THREE.Scene, camera: THREE.Perspecti
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
   renderer.setSize(innerWidth, innerHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.0;
+  renderer.toneMappingExposure = 0.65; // Sky.setTime applies the per-time-of-day value from world/lighting.ts
   renderer.shadowMap.enabled = true;
   await renderer.init();
 

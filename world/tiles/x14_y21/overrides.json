@@ -1,0 +1,33 @@
+{
+  "zone": "suburb",
+  "defaultLevels": 4,
+  "buildings": {
+    "a1807981330": { "remove": true },
+    "a1808068566": { "remove": true },
+    "a1806956788": { "remove": true },
+    "a1806956844": { "remove": true },
+    "a1811716606": { "remove": true },
+    "a417056942": { "remove": true },
+    "a417056962": { "remove": true },
+    "a1806956944": { "remove": true },
+    "a272903778": { "style": "commercial_glass", "levels": 4, "name": "Kantipur Mall" },
+    "a1807989464": { "style": "commercial_glass", "levels": 5, "name": "Lotse Mall" },
+    "a595847294": { "style": "commercial_glass", "levels": 4, "name": "Buddha Mall" },
+    "a394297090": { "style": "commercial_glass", "levels": 5, "name": "Hotel Deepjoyti" },
+    "a394296938": { "style": "institutional", "levels": 4, "name": "Purnima Plus Medical Centre" },
+    "a1298126636": { "style": "temple_brick", "levels": 2, "roof": "pitched", "name": "Harihar Kshetra" },
+    "a595777712": { "style": "institutional", "levels": 2 },
+    "a2747267006": { "style": "tin_shed", "levels": 1 },
+    "a2747267008": { "style": "tin_shed", "levels": 1 },
+    "a2747267010": { "style": "tin_shed", "levels": 1 },
+    "a682526478": { "style": "tin_shed", "levels": 2 },
+    "a452670960": { "style": "institutional", "levels": 1, "roof": "pitched" },
+    "a452670962": { "style": "institutional", "levels": 1, "roof": "pitched" },
+    "a452670964": { "style": "institutional", "levels": 1, "roof": "pitched" },
+    "a452670966": { "style": "institutional", "levels": 1, "roof": "pitched" },
+    "a452670968": { "style": "institutional", "levels": 1, "roof": "pitched" },
+    "a452670970": { "style": "institutional", "levels": 1, "roof": "pitched" },
+    "a417019880": { "style": "institutional", "levels": 1, "roof": "pitched" }
+  },
+  "roads": {}
+}
