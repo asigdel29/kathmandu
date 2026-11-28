@@ -1,0 +1,48 @@
+{
+  "id": "ring-road-lap",
+  "title": "Ring Road lap",
+  "type": "race",
+  "start": {
+    "x": -8716.3,
+    "z": 735.9
+  },
+  "steps": [
+    {
+      "kind": "goto",
+      "x": -6496,
+      "z": -2964.5,
+      "radius": 30,
+      "text": "Checkpoint 1: Balaju"
+    },
+    {
+      "kind": "goto",
+      "x": -2304.2,
+      "z": -1942.6,
+      "radius": 30,
+      "text": "Checkpoint 2: Chabahil"
+    },
+    {
+      "kind": "goto",
+      "x": -2023.1,
+      "z": 2359,
+      "radius": 30,
+      "text": "Checkpoint 3: Koteshwor"
+    },
+    {
+      "kind": "goto",
+      "x": -4478.3,
+      "z": 4577.8,
+      "radius": 30,
+      "text": "Checkpoint 4: Satdobato"
+    },
+    {
+      "kind": "goto",
+      "x": -8716.3,
+      "z": 735.9,
+      "radius": 30,
+      "text": "Finish back at Kalanki"
+    }
+  ],
+  "timeLimitS": 1500,
+  "rewardText": "Lap complete"
+}

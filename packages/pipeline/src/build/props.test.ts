@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { hash01 } from '@ktm/geo';
 import type { Prop } from '@ktm/schema';
 import { capProps } from './budget.ts';
-import { POLE_ATTACH_M, WIRE_SPAN_M, alongPolyline, facadeProps, pointInRing, roofProps, streetProps, utilityProps, type RoadInfo, type XZ } from './props.ts';
+import { WIRE_HEIGHT_M, WIRE_SPAN_M, alongPolyline, facadeProps, pointInRing, roofProps, streetProps, utilityProps, type RoadInfo, type XZ } from './props.ts';
 
 const flat = (): number => 0;
 const count = (props: Prop[], type: Prop['type']): number => props.filter((p) => p.type === type).length;
@@ -114,9 +114,11 @@ it('puts a pole every 35 m, a transformer on every 6th pole and a wire bundle be
   const [a, b] = poles;
   expect(Math.hypot(b!.x - a!.x, b!.z - a!.z)).toBeCloseTo(35, 6);
   const w = props.find((p) => p.type === 'wires')!;
-  expect(w.scale).toBeCloseTo(1, 6); expect(w.pitch).toBeCloseTo(0, 9);
-  expect(w.y).toBeCloseTo(POLE_ATTACH_M, 9);
-  expect(w.x).toBeCloseTo((a!.x + b!.x) / 2, 9);
+  expect(w.scale).toBeCloseTo(35 / WIRE_SPAN_M, 6); expect(w.pitch).toBeCloseTo(0, 9);
+  // the bundle starts at the first pole's insulators and heads for the next pole
+  expect(w.y).toBeCloseTo(WIRE_HEIGHT_M, 9);
+  expect(w.x).toBeCloseTo(a!.x, 9); expect(w.z).toBeCloseTo(a!.z, 9);
+  expect(w.x + Math.sin(w.rotY) * 35).toBeCloseTo(b!.x, 6);
   // the transformer sits on the 6th pole
   const t = props.find((p) => p.type === 'transformer')!;
   expect(t.x).toBeCloseTo(poles[5]!.x, 9);
@@ -128,10 +130,8 @@ it('tilts and stretches the wires to follow a slope', () => {
   const w = props.find((p) => p.type === 'wires')!;
   expect(w.pitch).toBeCloseTo(Math.atan(0.1), 6);
   expect(w.scale).toBeCloseTo(Math.hypot(35, 3.5) / WIRE_SPAN_M, 6);
-  expect(w.y).toBeCloseTo((a!.y + b!.y) / 2 + POLE_ATTACH_M, 9);
-  // rotY points along the span, so the wire ends meet the poles
-  const dx = Math.sin(w.rotY) * 17.5, dz = Math.cos(w.rotY) * 17.5;
-  expect(w.x - dx).toBeCloseTo(a!.x, 6); expect(w.z - dz).toBeCloseTo(a!.z, 6);
+  expect(w.y).toBeCloseTo(a!.y + WIRE_HEIGHT_M, 9);
+  expect(w.x + Math.sin(w.rotY) * 35).toBeCloseTo(b!.x, 6); expect(w.z + Math.cos(w.rotY) * 35).toBeCloseTo(b!.z, 6);
 });
 
 it('moves a pole to the other kerb when a building stands in its place, and skips footways', () => {

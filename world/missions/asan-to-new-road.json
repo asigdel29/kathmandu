@@ -1,0 +1,27 @@
+{
+  "id": "asan-to-new-road",
+  "title": "Courier run: Asan to New Road",
+  "type": "delivery",
+  "start": {
+    "x": -5804.4,
+    "z": -863.5
+  },
+  "steps": [
+    {
+      "kind": "pickup",
+      "x": -5804.4,
+      "z": -863.5,
+      "radius": 10,
+      "text": "Collect the parcel at Asan Tole"
+    },
+    {
+      "kind": "dropoff",
+      "x": -5895.2,
+      "z": -390.2,
+      "radius": 12,
+      "text": "Drop the parcel on New Road"
+    }
+  ],
+  "timeLimitS": 240,
+  "rewardText": "Courier fee: Rs 200"
+}

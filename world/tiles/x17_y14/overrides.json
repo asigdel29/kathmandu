@@ -1,0 +1,478 @@
+{
+  "zone": "suburb",
+  "defaultLevels": 4,
+  "buildings": {
+    "a247713518": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat",
+      "name": "Naya Baneshwar Departmental Store"
+    },
+    "a386681766": {
+      "style": "institutional",
+      "levels": 2,
+      "roof": "flat"
+    },
+    "a386681896": {
+      "style": "institutional",
+      "levels": 4,
+      "roof": "flat"
+    },
+    "a386681918": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a386700236": {
+      "style": "institutional",
+      "levels": 4,
+      "roof": "flat"
+    },
+    "a406311776": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a408198312": {
+      "style": "rcc_plaster_white",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a408198412": {
+      "style": "institutional",
+      "levels": 4,
+      "roof": "flat"
+    },
+    "a408198472": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat",
+      "name": "Columbus School"
+    },
+    "a412154176": {
+      "style": "institutional",
+      "levels": 4,
+      "roof": "flat"
+    },
+    "a412154196": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a412154242": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a412154254": {
+      "style": "institutional",
+      "levels": 2,
+      "roof": "flat"
+    },
+    "a412160884": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a412160934": {
+      "style": "institutional",
+      "levels": 4,
+      "roof": "flat"
+    },
+    "a412509572": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a413697120": {
+      "style": "institutional",
+      "levels": 4,
+      "roof": "flat"
+    },
+    "a413731964": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a413745596": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat",
+      "name": "Pasar Raya KK Super Mart"
+    },
+    "a413955298": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a413972166": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a414211820": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat",
+      "name": "Civil Bank"
+    },
+    "a419069258": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a419069340": {
+      "style": "rcc_plaster_white",
+      "levels": 2,
+      "roof": "flat"
+    },
+    "a419069354": {
+      "style": "institutional",
+      "levels": 6,
+      "roof": "flat",
+      "name": "Crimson International College"
+    },
+    "a435901634": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a435901672": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a435901688": {
+      "style": "institutional",
+      "levels": 5,
+      "roof": "flat"
+    },
+    "a435901724": {
+      "style": "institutional",
+      "levels": 4,
+      "roof": "flat"
+    },
+    "a436093332": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat",
+      "name": "Global IME Bank"
+    },
+    "a436093334": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat",
+      "name": "Chicken Station"
+    },
+    "a436093342": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat",
+      "name": "Shumbheshwar Dept.Store"
+    },
+    "a436093358": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a436093366": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a436093372": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a436093386": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a436093388": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a437175136": {
+      "style": "institutional",
+      "levels": 6,
+      "roof": "flat"
+    },
+    "a438536930": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a438536932": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a438552594": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a438552612": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a438851102": {
+      "style": "institutional",
+      "levels": 5,
+      "roof": "flat"
+    },
+    "a438857676": {
+      "style": "institutional",
+      "levels": 6,
+      "roof": "flat"
+    },
+    "a438857678": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a438862040": {
+      "style": "institutional",
+      "levels": 5,
+      "roof": "flat"
+    },
+    "a439088028": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a439088030": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a439088046": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a439088048": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a439088050": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a439088052": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a439088308": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a439088316": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a439088318": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a439251334": {
+      "style": "institutional",
+      "levels": 5,
+      "roof": "flat"
+    },
+    "a439255364": {
+      "style": "institutional",
+      "levels": 4,
+      "roof": "flat"
+    },
+    "a439269096": {
+      "style": "institutional",
+      "levels": 4,
+      "roof": "flat",
+      "name": "Asian Engineering College"
+    },
+    "a440430670": {
+      "style": "institutional",
+      "levels": 4,
+      "roof": "flat"
+    },
+    "a5824405": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a446496770": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a446981238": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a446981240": {
+      "style": "institutional",
+      "levels": 4,
+      "roof": "flat"
+    },
+    "a452673078": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat",
+      "name": "Buddhanagar Books & Stationery Store"
+    },
+    "a452673808": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat",
+      "name": "Khom Store"
+    },
+    "a452698270": {
+      "style": "rcc_plaster_white",
+      "levels": 5,
+      "roof": "flat"
+    },
+    "a452706472": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat",
+      "name": "JK Store"
+    },
+    "a453957610": {
+      "style": "institutional",
+      "levels": 6,
+      "roof": "flat",
+      "name": "New Pashupati Medical clinic"
+    },
+    "a453957612": {
+      "style": "institutional",
+      "levels": 4,
+      "roof": "flat",
+      "name": "Shubham Polyclinic"
+    },
+    "a458264558": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a458264560": {
+      "style": "institutional",
+      "levels": 2,
+      "roof": "flat"
+    },
+    "a458264562": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a458264574": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a458264576": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a458264596": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a458264610": {
+      "style": "institutional",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a682315004": {
+      "style": "institutional",
+      "levels": 1,
+      "roof": "flat"
+    },
+    "a745849602": {
+      "levels": 3,
+      "name": "saurab house"
+    },
+    "a1286601760": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat",
+      "name": "Rajeev Store"
+    },
+    "a1301068118": {
+      "style": "commercial_glass",
+      "levels": 2,
+      "roof": "flat"
+    },
+    "a1301864730": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a1301864732": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a1301864734": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a2308421738": {
+      "levels": 4,
+      "name": "Acharya Residence"
+    },
+    "a2856026280": {
+      "style": "commercial_glass",
+      "levels": 3,
+      "roof": "flat"
+    },
+    "a386700260": {
+      "levels": 6,
+      "style": "rcc_plaster_white",
+      "roof": "flat",
+      "name": "Bibhuti Solutions Pvt. Ltd."
+    },
+    "a452706418": {
+      "levels": 8,
+      "style": "rcc_plaster_white",
+      "roof": "flat"
+    },
+    "a452710812": {
+      "style": "institutional",
+      "levels": 2,
+      "roof": "flat",
+      "name": "Kanyam Prayer House"
+    },
+    "a1828346136": {
+      "style": "temple_brick",
+      "levels": 2,
+      "roof": "pitched"
+    },
+    "a1833512960": {
+      "style": "temple_brick",
+      "levels": 2,
+      "roof": "pitched"
+    },
+    "a1833431598": {
+      "style": "temple_brick",
+      "levels": 2,
+      "roof": "pitched"
+    }
+  },
+  "roads": {},
+  "notes": "Sankhamul and Buddhanagar: dense four-storey RCC blocks between the Bagmati corridor and Sankhamul Marg, with a cluster of schools and colleges in institutional style and shops and banks in the north-east. Two implausible height tags (a 50 m and a 40 m house) and a 23-storey tag on a 58 m2 footprint are replaced by storey counts. Three temples mapped as points inside small buildings are styled as brick temples."
+}

@@ -3,13 +3,13 @@ export type XZ = [number, number];
 export type Hash = (s: string) => number;
 export type YAt = (x: number, z: number) => number;
 
-/** Height (m) above the ground at which wires leave a power pole. The wires prop is authored around this height. */
-export const POLE_ATTACH_M = 7.2;
-/** Span (m) the wires prop geometry is authored for; instances are scaled to the real chord. */
-export const WIRE_SPAN_M = 35;
+/** Height of the span wires above the ground at a pole (insulator tips on the upper crossarm; tools/props/powerpole.py). */
+export const WIRE_HEIGHT_M = 7.8;
+/** Length of tools/props/wires.glb along +Z; a span's `scale` is its length divided by this. */
+export const WIRE_SPAN_M = 40;
+/** Longest span that still gets a wire bundle; a longer gap means a pole is missing or lies in another tile. */
+const MAX_WIRE_SPAN_M = 70;
 export const POWERPOLE_EVERY_M = 35;
-/** Longest chord (m) that still gets a wire bundle; a longer gap means a pole was skipped or lies in another tile. */
-const WIRE_MAX_M = 55;
 /** A tile must carry fewer props than this; `validate` enforces it and the builder thins to fit. */
 export const MAX_PROPS_PER_TILE = 6_000;
 /** Facade props go on ground floors within this distance (m) of a commercial road. */
@@ -54,6 +54,22 @@ export function pointInRing([px, pz]: XZ, ring: XZ[]): boolean {
     if ((zi > pz) !== (zj > pz) && px < ((xj - xi) * (pz - zi)) / (zj - zi) + xi) inside = !inside;
   }
   return inside;
+}
+
+/**
+ * Wire bundles between consecutive poles of one road. The `wires` prop sits at the first pole's
+ * insulator height, `rotY` is the heading toward the next pole, `pitch` the slope (radians, up is positive)
+ * and `scale` the 3-D span over the 40 m the model is built for. Gaps wider than 70 m are not bridged.
+ */
+export function powerSpans(poles: Prop[]): Prop[] {
+  const out: Prop[] = [];
+  for (let i = 0; i + 1 < poles.length; i++) {
+    const a = poles[i]!, b = poles[i + 1]!;
+    const dx = b.x - a.x, dz = b.z - a.z, dy = b.y - a.y, h = Math.hypot(dx, dz);
+    if (h < 1 || h > MAX_WIRE_SPAN_M) continue;
+    out.push({ type: 'wires', x: a.x, y: a.y + WIRE_HEIGHT_M, z: a.z, rotY: Math.atan2(dx, dz), pitch: Math.atan2(dy, h), scale: Math.hypot(h, dy) / WIRE_SPAN_M });
+  }
+  return out;
 }
 
 /** Absolute polygon area, m². */
@@ -183,37 +199,28 @@ const rightOf = (s: Sample): XZ => [-s.dz, s.dx];
 /**
  * Utility poles every 35 m on a vehicle road, on the road's preferred side (the other side when a building is in the way),
  * a transformer on every 6th pole, and a wire bundle between consecutive poles.
- * The wire prop is authored for a 35 m span with its origin at the attach height; its scale is chord / 35,
- * its y is the mean pole attach height and `pitch` follows the slope.
+ * Wire bundles come from powerSpans.
  */
 export function utilityProps(road: RoadInfo, yAt: YAt, hash: Hash, blocked: Blocked = never): Prop[] {
   const out: Prop[] = [];
   if (!road.vehicle) return out;
   const pref = hash(`${road.id}:pole`) < 0.5 ? 1 : -1;
   const off = road.width / 2 + 0.6;
-  const poles: { x: number; y: number; z: number }[] = [];
+  const poles: Prop[] = [];
   for (const s of sampleAlong(road.pts, POWERPOLE_EVERY_M)) {
     const [rx, rz] = rightOf(s);
     for (const side of [pref, -pref]) {
       const x = s.x + rx * off * side, z = s.z + rz * off * side;
       if (blocked(x, z)) continue;
       const rotY = Math.atan2(s.dx, s.dz), y = yAt(x, z);
-      out.push({ type: 'powerpole', x, y, z, rotY, scale: 1 });
+      const pole: Prop = { type: 'powerpole', x, y, z, rotY, scale: 1 };
+      out.push(pole);
       if (poles.length % 6 === 5) out.push({ type: 'transformer', x, y, z, rotY, scale: 1 });
-      poles.push({ x, y, z });
+      poles.push(pole);
       break;
     }
   }
-  for (let i = 0; i + 1 < poles.length; i++) {
-    const a = poles[i]!, b = poles[i + 1]!;
-    const run = Math.hypot(b.x - a.x, b.z - a.z);
-    if (run < 4 || run > WIRE_MAX_M) continue;
-    const chord = Math.hypot(run, b.y - a.y);
-    out.push({
-      type: 'wires', x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 + POLE_ATTACH_M, z: (a.z + b.z) / 2,
-      rotY: Math.atan2(b.x - a.x, b.z - a.z), scale: chord / WIRE_SPAN_M, pitch: Math.atan2(b.y - a.y, run),
-    });
-  }
+  out.push(...powerSpans(poles));
   return out;
 }
 

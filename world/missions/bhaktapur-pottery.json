@@ -1,0 +1,27 @@
+{
+  "id": "bhaktapur-pottery",
+  "title": "Bhaktapur pottery delivery",
+  "type": "delivery",
+  "start": {
+    "x": 5695.4,
+    "z": 3335.9
+  },
+  "steps": [
+    {
+      "kind": "pickup",
+      "x": 5695.4,
+      "z": 3335.9,
+      "radius": 12,
+      "text": "Collect the clay pots at Pottery Square"
+    },
+    {
+      "kind": "dropoff",
+      "x": 5844.9,
+      "z": 3239.3,
+      "radius": 15,
+      "text": "Carry the pots to Taumadhi Tole without rushing"
+    }
+  ],
+  "timeLimitS": 300,
+  "rewardText": "Pots delivered: Rs 250"
+}

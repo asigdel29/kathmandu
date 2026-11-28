@@ -1,0 +1,47 @@
+{
+  "id": "old-core-hiti",
+  "title": "Find five stone water spouts in the old core",
+  "type": "collect",
+  "start": {
+    "x": -6205.4,
+    "z": -523.1
+  },
+  "steps": [
+    {
+      "kind": "goto",
+      "x": -6394.5,
+      "z": -678,
+      "radius": 10,
+      "text": "Find Layakha Hiti"
+    },
+    {
+      "kind": "goto",
+      "x": -6364.1,
+      "z": -500.2,
+      "radius": 10,
+      "text": "Find Maru Hiti"
+    },
+    {
+      "kind": "goto",
+      "x": -6565.6,
+      "z": -252.2,
+      "radius": 10,
+      "text": "Find Lho Hiti"
+    },
+    {
+      "kind": "goto",
+      "x": -6525.2,
+      "z": 265.8,
+      "radius": 10,
+      "text": "Find Nyapacho Hiti"
+    },
+    {
+      "kind": "goto",
+      "x": -5676.4,
+      "z": -91.9,
+      "radius": 10,
+      "text": "Find Sundhara"
+    }
+  ],
+  "rewardText": "Five hiti found"
+}

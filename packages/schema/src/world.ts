@@ -28,16 +28,16 @@ export const Overrides = z.object({
 export type Overrides = z.infer<typeof Overrides>;
 
 export const PropType = z.enum([
-  'streetlight', 'tree', 'water_tank', 'rebar', 'powerpole', 'shrine', 'sign', 'awning', 'billboard', 'prayer_flags', 'taxi_spawn', 'ped_spawn',
+  'streetlight', 'tree', 'water_tank', 'rebar', 'powerpole', 'shrine', 'sign', 'awning', 'billboard', 'prayer_flags', 'shutter', 'wires', 'taxi_spawn', 'ped_spawn',
   // Street density pass.
-  'shutter', 'banner', 'wires', 'transformer', 'rooftop_clutter', 'parapet_pots', 'parked_bike', 'vendor_cart', 'rubbish_pile', 'puddle',
+  'banner', 'transformer', 'rooftop_clutter', 'parapet_pots', 'parked_bike', 'vendor_cart', 'rubbish_pile', 'puddle',
 ]);
 export const Prop = z.object({
   type: PropType,
   x: z.number(), y: z.number(), z: z.number(),
   rotY: z.number().default(0),
   scale: z.number().positive().default(1),
-  /** Tilt (radians) about the prop's own X axis, applied after rotY; only `wires` on a slope uses it. Absent means 0. */
+  /** Slope in radians about the prop's local X axis (positive rises along +Z). Only `wires` uses it. */
   pitch: z.number().optional(),
 });
 export const PropsFile = z.object({ props: z.array(Prop) });
@@ -68,12 +68,20 @@ export const Hero = z.object({
 }).strict();
 export type Hero = z.infer<typeof Hero>;
 
+/** Game-clock hours; the window wraps past midnight when fromH > toH. */
+export const ClockWindow = z.object({ fromH: z.number().min(0).max(24), toH: z.number().min(0).max(24) }).strict();
 export const MissionStep = z.object({
   kind: z.enum(['goto', 'pickup', 'dropoff', 'photo', 'wait']),
+  /** World coordinates (section 1), not tile-local. */
   x: z.number(), z: z.number(),
   radius: z.number().positive().default(8),
   text: z.string(),
-});
+  /** `wait` steps: seconds to stay inside the radius without leaving it. */
+  waitS: z.number().positive().optional(),
+  /** The step only completes while the game clock is inside this window. */
+  window: ClockWindow.optional(),
+}).strict().refine((s) => s.kind !== 'wait' || s.waitS !== undefined, { message: 'wait steps need waitS', path: ['waitS'] });
+export type MissionStep = z.infer<typeof MissionStep>;
 export const Mission = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/),
   title: z.string(),

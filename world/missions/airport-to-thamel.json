@@ -1,0 +1,27 @@
+{
+  "id": "airport-to-thamel",
+  "title": "Airport pickup to Thamel",
+  "type": "taxi",
+  "start": {
+    "x": -1387.5,
+    "z": 85
+  },
+  "steps": [
+    {
+      "kind": "pickup",
+      "x": -1387.5,
+      "z": 85,
+      "radius": 20,
+      "text": "Pick up the fare at the international terminal"
+    },
+    {
+      "kind": "dropoff",
+      "x": -5786.4,
+      "z": -1589.4,
+      "radius": 15,
+      "text": "Drop the fare at Thamel Chowk"
+    }
+  ],
+  "timeLimitS": 900,
+  "rewardText": "Fare paid: Rs 800"
+}
