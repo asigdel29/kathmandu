@@ -5,7 +5,10 @@ import palette from '../../../../world/style/palette.json';
 export type PropType = Prop['type'];
 
 /** Types that have a model; `taxi_spawn` and `ped_spawn` are markers and are not drawn. */
-export const RENDERED = new Set<PropType>(['streetlight', 'tree', 'water_tank', 'rebar', 'powerpole', 'shrine', 'sign', 'awning', 'billboard', 'prayer_flags', 'shutter', 'wires']);
+export const RENDERED = new Set<PropType>(['streetlight', 'tree', 'water_tank', 'rebar', 'powerpole', 'shrine', 'sign', 'awning', 'billboard', 'prayer_flags', 'shutter', 'wires',
+  // Street density pass.
+  'banner', 'transformer', 'rooftop_clutter', 'parapet_pots', 'parked_bike', 'vendor_cart', 'rubbish_pile', 'puddle',
+]);
 
 /** Tree models: peepal (wide crown), bottlebrush, jacaranda. A tree's variant comes from its position. */
 export const TREE_VARIANTS = ['tree_peepal', 'tree_bottlebrush', 'tree_jacaranda'] as const;
@@ -41,6 +44,7 @@ const TINTS: Partial<Record<PropType, number[]>> = {
   sign: ['tin_blue', 'marigold', 'saffron', 'plaster_white', 'pastel_1', 'pastel_2', 'pastel_4', 'newari_brick', '#3f7a52'].map(hex),
   awning: ['tin_blue', 'saffron', 'marigold', 'newari_brick', '#3f7a52', '#c4281c'].map(hex),
   shutter: ['#b5bec2', '#9fb3c4', '#c97c6c', '#9cb894', '#e0d9c4', '#6c93c0'].map(hex),
+  banner: ['saffron', 'marigold', '#c4281c', 'plaster_white', 'tin_blue'].map(hex),
   tree: ['#ffffff', '#e8f0d8', '#d4e2b8', '#f2f6e4', '#c9d9a8'].map(hex),
 };
 

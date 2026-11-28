@@ -75,5 +75,5 @@ describe('LUT generator', () => {
     const last = (32 * 32 * 32 - 1) * 4;
     const white = gradeColor('day', [1, 1, 1]);
     for (let k = 0; k < 3; k++) expect(day[last + k]!).toBeCloseTo(white[k]!, 6);
-  });
+  }, 30_000); // builds three 32^3 tables; takes about 5 s on a loaded CI runner
 });

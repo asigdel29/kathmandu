@@ -48,7 +48,7 @@ def main():
         limit = 600 if name.startswith('tree') else 1500
         problems = []
         if tris >= limit: problems.append(f'{tris} tris >= {limit}')
-        if abs(lo[1]) > 0.06 and not name.startswith(('wires', 'prayer_flags', 'awning', 'sign')): problems.append(f'pivot not at ground (min y {lo[1]:.2f})')
+        if abs(lo[1]) > 0.06 and not name.startswith(('wires', 'prayer_flags', 'awning', 'sign', 'transformer', 'banner', 'rubbish_pile')): problems.append(f'pivot not at ground (min y {lo[1]:.2f})')
         if len(j['meshes']) != 1 or len(j.get('materials', [])) > 1: problems.append('needs exactly one mesh and one material')
         if size > 1_000_000: problems.append('over 1 MB')
         for img in j.get('images', []): problems.append('has an image texture')

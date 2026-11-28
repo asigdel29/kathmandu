@@ -17,7 +17,7 @@ const GLOW: Partial<Record<PropType, { color: [number, number, number]; gain: nu
   shrine: { color: [1.0, 0.72, 0.38], gain: 2.5 },
 };
 /** Thin geometry that costs more in the shadow pass than it shows there. */
-const NO_SHADOW = new Set<PropType>(['wires', 'prayer_flags']);
+const NO_SHADOW = new Set<PropType>(['wires', 'prayer_flags', 'puddle', 'banner']);
 
 /** Visible stand-in while a model loads or when its file is missing: a 0.5 m grey post. */
 function fallbackGeometry(): THREE.BufferGeometry {

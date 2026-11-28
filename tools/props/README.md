@@ -29,3 +29,7 @@ python3 tools/props/check.py            # triangles, bounding boxes, attributes,
 - `wires.glb` is a bundle of nine cables over a 40 m span along +Z, origin at the upper crossarm insulators
   (`y = 7.8` above the pole's ground). The generator emits a `wires` prop per pair of consecutive powerpoles:
   `rotY` = heading to the next pole, `pitch` = slope, `scale` = 3-D span / 40. The renderer stretches only Z.
+- Street density props (placeholder geometry, to be refined): `banner` spans local X across the street (6 m, cloth is near-white and
+  tinted per instance, rotY is the road heading); `transformer` is a three-drum bank on the back (-Z) of a power pole and shares the
+  pole's origin; `rooftop_clutter` and `parapet_pots` stand on a roof at their origin; `parked_bike` faces +Z; `vendor_cart` has its
+  handles toward +Z; `rubbish_pile` is a half-buried mound; `puddle` is a flat glossy disc 2 cm above the ground.

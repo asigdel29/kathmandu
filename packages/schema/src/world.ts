@@ -27,7 +27,11 @@ export const Overrides = z.object({
 }).strict();
 export type Overrides = z.infer<typeof Overrides>;
 
-export const PropType = z.enum(['streetlight', 'tree', 'water_tank', 'rebar', 'powerpole', 'shrine', 'sign', 'awning', 'billboard', 'prayer_flags', 'shutter', 'wires', 'taxi_spawn', 'ped_spawn']);
+export const PropType = z.enum([
+  'streetlight', 'tree', 'water_tank', 'rebar', 'powerpole', 'shrine', 'sign', 'awning', 'billboard', 'prayer_flags', 'shutter', 'wires', 'taxi_spawn', 'ped_spawn',
+  // Street density pass.
+  'banner', 'transformer', 'rooftop_clutter', 'parapet_pots', 'parked_bike', 'vendor_cart', 'rubbish_pile', 'puddle',
+]);
 export const Prop = z.object({
   type: PropType,
   x: z.number(), y: z.number(), z: z.number(),

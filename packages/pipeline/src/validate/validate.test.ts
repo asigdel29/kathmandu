@@ -36,6 +36,20 @@ it('rejects a truncated heightmap', async () => {
   expect(res.errors.some((e) => e.includes('height.f32'))).toBe(true);
 });
 
+it('rejects a tile with 6,000 props and accepts one with 5,999', async () => {
+  const dir = await builtFixture();
+  const props = JSON.parse(readFileSync(`${dir}/props.json`, 'utf8'));
+  const tree = { type: 'tree', x: 400, y: 50, z: 400, rotY: 0, scale: 1 };
+  props.props = Array.from({ length: 5_999 }, () => tree);
+  writeFileSync(`${dir}/props.json`, JSON.stringify(props));
+  expect((await validateTile(dir)).errors).toEqual([]);
+  props.props.push(tree);
+  writeFileSync(`${dir}/props.json`, JSON.stringify(props));
+  const res = await validateTile(dir);
+  expect(res.ok).toBe(false);
+  expect(res.errors).toEqual(['props: 6000 props, the budget is under 6000']);
+});
+
 it('reports border nodes missing on the other side of a seam', () => {
   const node = (id: string, x: number, z: number) => ({ id, x, y: 0, z, border: true });
   const edge = (from: string, to: string) => ({ from, to, lanes: 1, oneway: false, speed: 25, cls: 'residential', width: 6 });
