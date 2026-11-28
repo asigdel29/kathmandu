@@ -2,10 +2,15 @@ import * as THREE from 'three/webgpu';
 import { BASE_ELEVATION_M, inGrid, lonLatToLocal, TILE_SIZE_M, tileId, tileIndexAt, tileOrigin } from '@ktm/geo';
 import { VehicleTunings, type VehicleType } from '@ktm/schema';
 import vehiclesJson from '../../../world/vehicles.json';
+import heroesJson from '../../../world/heroes/heroes.json';
 import { GameAudio, TempleSources, type AudioState } from './audio/Audio.ts';
 import { FollowCamera } from './camera/FollowCamera.ts';
 import { readConfig } from './config.ts';
 import { Input } from './input/Input.ts';
+import { MapScreen } from './map/MapScreen.ts';
+import { Minimap } from './map/Minimap.ts';
+import { headingFromDirection, type XZ } from './map/projection.ts';
+import { Waypoint } from './map/waypoint.ts';
 import { MISSIONS } from './missions/catalog.ts';
 import { resolveDebugMission } from './missions/debug.ts';
 import { Markers } from './missions/Markers.ts';
@@ -17,7 +22,7 @@ import { Character } from './player/Character.ts';
 import { IdleTracker, wetness } from './post/quality.ts';
 import { createRenderer } from './renderer.ts';
 import { loadResume, type SaveData, type SaveStorage, startAutosave } from './state/Save.ts';
-import { Hud } from './ui/Hud.ts';
+import { Hud, relativeBearing } from './ui/Hud.ts';
 import { fallbackSpawns, fixedSteps, nearestWithin, propSpawns, yawTowards } from './vehicles/Garage.ts';
 import { msToKmh, Vehicle } from './vehicles/Vehicle.ts';
 import { Clock, nightAmount } from './world/Clock.ts';
@@ -36,6 +41,7 @@ interface KtmDebug {
   speed: number; speedKmh: number; driving: VehicleType | null; vehicles: number; trafficCount: number; audio?: AudioState; temples: number; pedCount: number;
   /** The accepted mission (null when none): status and current step index (steps.length once done). */
   mission: { id: string; status: string; step: number; markers: number } | null;
+   mapOpen: boolean; waypoint: XZ | null;
 }
 declare global { interface Window { __ktmReady?: boolean; __ktm?: unknown; __ktmDebug?: KtmDebug } }
 
@@ -49,6 +55,7 @@ const ENTER_RADIUS_M = 3;
 const AUTODRIVE_S = 5;
 const CAPSULE_LIFT_M = 1.2;
 const LOST_BELOW_Y = -500;
+const MINIMAP_INTERVAL_S = 1 / 15;
 const RESUME_LOOK_M = 20;
 
 /** localStorage, or an inert stand-in where the browser denies access to it. */
@@ -101,14 +108,22 @@ async function main(): Promise<void> {
   const missionEl = document.getElementById('mission')!;
   const missionListEl = document.getElementById('missions')!;
   const markers = new Markers(scene);
-  const missions = new MissionSystem(MISSIONS, markers);
-  const debug: KtmDebug = { speed: 0, speedKmh: 0, driving: null, vehicles: 0, trafficCount: 0, temples: 0, pedCount: 0, mission: null };
+  // The minimap and full map show the same mission targets as the in-world markers.
+  const missionMarkers: XZ[] = [];
+  const missions = new MissionSystem(MISSIONS, {
+    set(targets) { markers.set(targets); missionMarkers.length = 0; for (const t of targets) missionMarkers.push({ x: t.x, z: t.z }); },
+  });
+  const debug: KtmDebug = { speed: 0, speedKmh: 0, driving: null, vehicles: 0, trafficCount: 0, temples: 0, pedCount: 0, mission: null, mapOpen: false, waypoint: null };
   window.__ktmDebug = debug;
   // Sound stays silent until the first key or pointer press (browser autoplay rule).
   const audio = new GameAudio(camera, scene, `${import.meta.env.BASE_URL}audio/`);
   audio.armOnGesture();
   debug.audio = audio.state;
   const temples = new TempleSources();
+  // Minimap and full map.
+  const waypoint = new Waypoint();
+  const minimap = new Minimap(document.body);
+  const mapScreen = new MapScreen(document.body, manifest, heroesJson, (p) => { if (p) waypoint.set(p.x, p.z); else waypoint.clear(); });
 
   await streamer.update(start, true);
   // Without an explicit spawn, start on the street node nearest the tile centre rather than inside a block.
@@ -211,7 +226,7 @@ async function main(): Promise<void> {
   await heroes.update(streamer.loaded());
   debug.trafficCount = traffic?.count ?? 0;
   debug.pedCount = peds?.count ?? 0;
-  window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic, audio, temples, streetLights, post, peds, missions, markers };
+  window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic, audio, temples, streetLights, post, peds, missions, markers, minimap, mapScreen, waypoint, missionMarkers };
   streetLights.update(1, start, night.value); // lamps on before the first render, so the lit pipelines are compiled in the warm-up
   await facade.userData.texturesReady;
   // Warm-up: render until the frame time settles (pipeline compiles and temporal history allocation happen in
@@ -241,6 +256,8 @@ async function main(): Promise<void> {
   let acc = 0;
   let last = performance.now();
   const focus = new THREE.Vector3();
+  const look = new THREE.Vector3();
+  let minimapAcc = MINIMAP_INTERVAL_S;
   const idle = new IdleTracker();
   const prevFocus = new THREE.Vector3().copy(start);
   const prevCamQ = new THREE.Quaternion();
@@ -249,6 +266,8 @@ async function main(): Promise<void> {
     const frameDt = Math.max(0, (now - last) / 1000);
     last = now;
     const dt = Math.min(frameDt, 0.05);
+    // The nav graph follows the streamer; traffic and the maps read it.
+    graph.sync(navTiles());
     let steps = 0;
     if (!config.freeze) {
       ({ steps, acc } = config.autodrive
@@ -315,6 +334,20 @@ async function main(): Promise<void> {
     audio.update(dt, { position: focus, zone, driving: car !== null, speedMs: speed, temples: temples.all, horn: input.hornPressed });
     debug.audio = audio.state; debug.temples = temples.all.length;
     hud.update(dt, focus, clock.time, clock.paused, car ? msToKmh(car.speedMs) : undefined, traffic?.count);
+    if (input.mapPressed && mapScreen.toggle(focus.x, focus.z)) input.releasePointer();
+    const yaw = car ? car.yaw : player.heading;
+    const headingDeg = headingFromDirection(Math.sin(yaw), Math.cos(yaw));
+    const info = waypoint.update(focus.x, focus.z);
+    camera.getWorldDirection(look);
+    hud.setWaypoint(info && { distance: info.distance, relDeg: relativeBearing(info.bearing, headingFromDirection(look.x, look.z)) });
+    minimapAcc += frameDt;
+    if (minimapAcc >= MINIMAP_INTERVAL_S) {
+      minimapAcc = 0;
+      minimap.draw({ x: focus.x, z: focus.z, headingDeg, graph, traffic: traffic?.sim.cars ?? [], markers: missionMarkers, waypoint: waypoint.target });
+    }
+    if (mapScreen.isOpen) mapScreen.draw({ x: focus.x, z: focus.z, headingDeg, graph, markers: missionMarkers, waypoint: waypoint.target });
+    debug.mapOpen = mapScreen.isOpen;
+    debug.waypoint = waypoint.target ?? null;
     // Idle = the player and the camera are both still (depth of field fades in after 3 s of that).
     const moving = focus.distanceTo(prevFocus) > 0.05 * Math.max(frameDt, 1e-3) || camera.quaternion.angleTo(prevCamQ) > 1e-4 || input.lookDelta.x !== 0 || input.lookDelta.y !== 0;
     idle.update(frameDt, moving);
