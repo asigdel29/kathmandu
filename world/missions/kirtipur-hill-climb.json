@@ -1,0 +1,27 @@
+{
+  "id": "kirtipur-hill-climb",
+  "title": "Kirtipur hill climb",
+  "type": "race",
+  "start": {
+    "x": -8418.8,
+    "z": 2434.5
+  },
+  "steps": [
+    {
+      "kind": "goto",
+      "x": -9123.5,
+      "z": 2363.7,
+      "radius": 20,
+      "text": "Climb to the Bagh Bhairab temple"
+    },
+    {
+      "kind": "goto",
+      "x": -9281.4,
+      "z": 2271.7,
+      "radius": 20,
+      "text": "Finish at the Uma Maheshwar temple on the hilltop"
+    }
+  ],
+  "timeLimitS": 420,
+  "rewardText": "Hill climbed"
+}

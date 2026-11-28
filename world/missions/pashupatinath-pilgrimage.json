@@ -1,0 +1,34 @@
+{
+  "id": "pashupatinath-pilgrimage",
+  "title": "Pilgrimage walk: Pashupatinath",
+  "type": "collect",
+  "start": {
+    "x": -2553.9,
+    "z": -813.3
+  },
+  "steps": [
+    {
+      "kind": "goto",
+      "x": -2119.6,
+      "z": -1159.1,
+      "radius": 25,
+      "text": "Walk to the Pashupatinath temple"
+    },
+    {
+      "kind": "wait",
+      "x": -2066.4,
+      "z": -1158,
+      "radius": 15,
+      "text": "Stand by the Bagmati at Arya Ghat for 20 s",
+      "waitS": 20
+    },
+    {
+      "kind": "goto",
+      "x": -1627.4,
+      "z": -1318.7,
+      "radius": 25,
+      "text": "Follow the river to Guhyeshwari"
+    }
+  ],
+  "rewardText": "Pilgrimage complete"
+}

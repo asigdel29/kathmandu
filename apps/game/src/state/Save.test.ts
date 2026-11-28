@@ -68,7 +68,7 @@ describe('loadResume', () => {
     expect(s.map.has(SAVE_KEY)).toBe(false);
   });
   it('lets explicit position parameters win', () => {
-    for (const q of ['?tile=x14_y17', '?x=1&z=2', '?x=1', '?hero=foo']) {
+    for (const q of ['?tile=x14_y17', '?x=1&z=2', '?x=1', '?hero=foo', '?mission=thamel-to-patan']) {
       const r = loadResume(stored(), q);
       expect(r.position, q).toBeUndefined();
       expect(r.vehicle, q).toBeUndefined();
