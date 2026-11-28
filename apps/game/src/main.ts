@@ -6,6 +6,10 @@ import { GameAudio, TempleSources, type AudioState } from './audio/Audio.ts';
 import { FollowCamera } from './camera/FollowCamera.ts';
 import { readConfig } from './config.ts';
 import { Input } from './input/Input.ts';
+import { MISSIONS } from './missions/catalog.ts';
+import { resolveDebugMission } from './missions/debug.ts';
+import { Markers } from './missions/Markers.ts';
+import { MissionSystem } from './missions/MissionSystem.ts';
 import { createFacadeMaterial, createNightUniform } from './materials/facade.ts';
 import { uniform } from 'three/tsl';
 import { Physics } from './physics/Physics.ts';
@@ -28,7 +32,11 @@ import { NavGraph } from './traffic/NavGraph.ts';
 import { Traffic } from './traffic/Traffic.ts';
 import { Pedestrians, type PedCar } from './people/Pedestrians.ts';
 
-interface KtmDebug { speed: number; speedKmh: number; driving: VehicleType | null; vehicles: number; trafficCount: number; audio?: AudioState; temples: number; pedCount: number }
+interface KtmDebug {
+  speed: number; speedKmh: number; driving: VehicleType | null; vehicles: number; trafficCount: number; audio?: AudioState; temples: number; pedCount: number;
+  /** The accepted mission (null when none): status and current step index (steps.length once done). */
+  mission: { id: string; status: string; step: number; markers: number } | null;
+}
 declare global { interface Window { __ktmReady?: boolean; __ktm?: unknown; __ktmDebug?: KtmDebug } }
 
 const STEP = 1 / 60;
@@ -49,7 +57,9 @@ function saveStorage(): SaveStorage {
 }
 
 async function main(): Promise<void> {
-  const config = readConfig(location.search, import.meta.env.VITE_WORLD_BASE_URL ?? '/world/');
+  const debugMission = resolveDebugMission(readConfig(location.search, import.meta.env.VITE_WORLD_BASE_URL ?? '/world/'), MISSIONS);
+  if (debugMission.warning) console.warn(debugMission.warning);
+  const config = debugMission.config;
   // The last session's position, time and vehicle, except where the URL names them explicitly.
   const storage = saveStorage();
   const resume = loadResume(storage, location.search);
@@ -88,7 +98,11 @@ async function main(): Promise<void> {
   const input = new Input(renderer.domElement);
   const follow = new FollowCamera(camera, config.view);
   const hud = new Hud(document.getElementById('hud')!);
-  const debug: KtmDebug = { speed: 0, speedKmh: 0, driving: null, vehicles: 0, trafficCount: 0, temples: 0, pedCount: 0 };
+  const missionEl = document.getElementById('mission')!;
+  const missionListEl = document.getElementById('missions')!;
+  const markers = new Markers(scene);
+  const missions = new MissionSystem(MISSIONS, markers);
+  const debug: KtmDebug = { speed: 0, speedKmh: 0, driving: null, vehicles: 0, trafficCount: 0, temples: 0, pedCount: 0, mission: null };
   window.__ktmDebug = debug;
   // Sound stays silent until the first key or pointer press (browser autoplay rule).
   const audio = new GameAudio(camera, scene, `${import.meta.env.BASE_URL}audio/`);
@@ -126,6 +140,12 @@ async function main(): Promise<void> {
     }
   }
   const groundY = (x: number, z: number) => (streamer.heightAt(x, z) ?? BASE_ELEVATION_M) - BASE_ELEVATION_M;
+  if (debugMission.lookAt && !target) lookAt.set(debugMission.lookAt.x, 0, debugMission.lookAt.z);
+  if (debugMission.lookAt && !target && !config.vehicle) {
+    // On foot, face the first mission target so its marker is in view.
+    player.heading = yawTowards(start, lookAt);
+    follow.yaw = player.heading + Math.PI;
+  }
 
   // Ambient traffic drives the nav graph stitched from the lod-0 tiles; it is re-synced with the streamer every frame.
   const graph = new NavGraph();
@@ -191,7 +211,7 @@ async function main(): Promise<void> {
   await heroes.update(streamer.loaded());
   debug.trafficCount = traffic?.count ?? 0;
   debug.pedCount = peds?.count ?? 0;
-  window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic, audio, temples, streetLights, post, peds };
+  window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic, audio, temples, streetLights, post, peds, missions, markers };
   streetLights.update(1, start, night.value); // lamps on before the first render, so the lit pipelines are compiled in the warm-up
   await facade.userData.texturesReady;
   // Warm-up: render until the frame time settles (pipeline compiles and temporal history allocation happen in
@@ -205,6 +225,7 @@ async function main(): Promise<void> {
     if (i >= 2 && took < WARM_FRAME_MS) break;
   }
   post.warm(); // compile the depth-of-field and driving-blur variants now rather than mid-play
+  if (debugMission.mission) missions.accept(debugMission.mission.id);
   window.__ktmReady = true;
 
   // Autosave every few seconds and whenever the tab is hidden or shown again.
@@ -298,6 +319,21 @@ async function main(): Promise<void> {
     const moving = focus.distanceTo(prevFocus) > 0.05 * Math.max(frameDt, 1e-3) || camera.quaternion.angleTo(prevCamQ) > 1e-4 || input.lookDelta.x !== 0 || input.lookDelta.y !== 0;
     idle.update(frameDt, moving);
     prevFocus.copy(focus); prevCamQ.copy(camera.quaternion);
+    // Missions tick once per frame on simulated time (zero while frozen); the clock window uses the game clock.
+    if (input.journalPressed) missions.toggleList();
+    if (missions.listOpen) {
+      const d = input.digitPressed();
+      if (d !== undefined) missions.accept(d === 0 ? 9 : d - 1);
+      if (input.abandonPressed) missions.abandon();
+    }
+    missions.tick({ dt: steps * STEP, x: focus.x, z: focus.z, speed: car ? Math.abs(car.speedMs) : player.speed, photo: input.photoPressed, timeOfDay: clock.time });
+    markers.update(dt, groundY);
+    const m = missions.active;
+    missionEl.textContent = missions.hudText(focus.x, focus.z, clock.time) || (missions.listOpen ? '' : 'J  missions');
+    missionEl.classList.toggle('idle', !m);
+    missionListEl.hidden = !missions.listOpen;
+    if (missions.listOpen) missionListEl.textContent = missions.listText();
+    debug.mission = m ? { id: m.mission.id, status: m.status, step: m.stepIndex, markers: markers.count } : null;
     input.endFrame(!config.freeze && steps === 0);
     post.update({ focusDistance: camera.position.distanceTo(focus), idleSeconds: idle.seconds, driving: car !== null, speedKmh: car ? msToKmh(speed) : 0, followCamera: config.view === 'follow', night: night.value }, frameDt * 1000);
     post.render();

@@ -1,0 +1,27 @@
+{
+  "id": "thamel-to-patan",
+  "title": "Taxi fare: Thamel to Patan Durbar Square",
+  "type": "taxi",
+  "start": {
+    "x": -5786.4,
+    "z": -1589.4
+  },
+  "steps": [
+    {
+      "kind": "pickup",
+      "x": -5786.4,
+      "z": -1589.4,
+      "radius": 15,
+      "text": "Pick up the fare at Thamel Chowk"
+    },
+    {
+      "kind": "dropoff",
+      "x": -4462.9,
+      "z": 3009.5,
+      "radius": 20,
+      "text": "Drop the fare at Patan Durbar Square"
+    }
+  ],
+  "timeLimitS": 900,
+  "rewardText": "Fare paid: Rs 650"
+}

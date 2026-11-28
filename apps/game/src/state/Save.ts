@@ -65,7 +65,7 @@ export function loadResume(storage: SaveStorage, search: string): Resume {
   const save = parseSave(raw);
   if (!save) { if (raw !== null) clear(storage); return {}; }
   const out: Resume = {};
-  const explicitPlace = q.has('tile') || q.has('x') || q.has('z') || q.has('hero');
+  const explicitPlace = q.has('tile') || q.has('x') || q.has('z') || q.has('hero') || q.has('mission');
   if (!explicitPlace) {
     out.position = { x: save.x, y: save.y, z: save.z, heading: save.heading };
     if (save.vehicle && !q.has('vehicle')) out.vehicle = save.vehicle;
