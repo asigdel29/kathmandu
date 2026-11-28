@@ -10,7 +10,8 @@ import { PATHS } from '../paths.ts';
 import { defaultLevels, pickStyle, styleIndex, zoneAt, type Zone } from '../style/style.ts';
 import { buildingHeight, extrudeBuilding, roofKind } from './buildings.ts';
 import { flattenUnderRoads, meshHeightAt, type RoadLine } from './flatten.ts';
-import { alongPolyline, pointInRing, roofProps, treesInRing, type XZ } from './props.ts';
+import { FACADE_REACH_M, MAX_PROPS_PER_TILE, alongPolyline, facadeProps, pointInRing, roofProps, streetProps, treesInRing, utilityProps, type RoadInfo, type XZ } from './props.ts';
+import { capProps } from './budget.ts';
 import { ROAD_LIFT, ROAD_SAMPLE_M, navNodeId, ribbon, roadSpec, sampleRoad, type RoadSpec } from './roads.ts';
 import { LANDCOVER, terrainMesh, type GreenArea } from './terrain.ts';
 import { waterMesh } from './water.ts';
@@ -20,6 +21,8 @@ const CONTENT_MIN_BUILDINGS = 5;
 const CONTENT_MIN_ROADS = 3;
 const COMMERCIAL_ROADS = new Set(['trunk', 'primary', 'secondary']);
 const COMMERCIAL_ROAD_DIST_M = 40;
+/** Roads whose frontage gets shop-front props; every road of a *-core zone counts too. */
+const SHOP_ROADS = new Set(['trunk', 'primary', 'secondary', 'tertiary']);
 
 export interface BuildOptions {
   featuresDir?: string; terrainDir?: string; worldDir?: string; outDir?: string;
@@ -172,6 +175,43 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
     return index.search(x - d, z - d, x + d, z + d).some((k) => { const s = segs[k]!; return segDist(x, z, s[0], s[1], s[2], s[3]) <= d; });
   };
 
+  // 6b. shop-front roads: the road kinds above plus every road of a *-core zone. Facade props use the
+  // closest such road within FACADE_REACH_M; street props use the same set.
+  const core = zone.endsWith('-core');
+  const isShopRoad = (highway: string, spec: RoadSpec): boolean => SHOP_ROADS.has(highway) || (core && (spec.vehicle || highway === 'pedestrian'));
+  const shopSegs: [number, number, number, number][] = [];
+  for (const { f, pts, spec } of roadList) {
+    if (!isShopRoad(String(f.properties.highway), spec)) continue;
+    for (let i = 0; i + 1 < pts.length; i++) shopSegs.push([pts[i]![0], pts[i]![1], pts[i + 1]![0], pts[i + 1]![1]]);
+  }
+  const shopIndex = shopSegs.length ? new Flatbush(shopSegs.length) : null;
+  if (shopIndex) { for (const [ax, az, bx, bz] of shopSegs) shopIndex.add(Math.min(ax, bx), Math.min(az, bz), Math.max(ax, bx), Math.max(az, bz)); shopIndex.finish(); }
+  const nearestShopRoad = (x: number, z: number): XZ | undefined => {
+    if (!shopIndex) return undefined;
+    const d = FACADE_REACH_M;
+    let best: XZ | undefined, bestD = d;
+    for (const k of shopIndex.search(x - d, z - d, x + d, z + d)) {
+      const [ax, az, bx, bz] = shopSegs[k]!;
+      const dx = bx - ax, dz = bz - az, l2 = dx * dx + dz * dz;
+      const t = l2 ? Math.min(Math.max(((x - ax) * dx + (z - az) * dz) / l2, 0), 1) : 0;
+      const px = ax + dx * t, pz = az + dz * t, dist = Math.hypot(x - px, z - pz);
+      if (dist <= bestD) { bestD = dist; best = [px, pz]; }
+    }
+    return best;
+  };
+
+  // 6c. footprints that street props must keep clear of (heroes' buildings are not built, so they do not count)
+  const footprints: XZ[][] = [];
+  for (const f of features) {
+    if (f.kind !== 'building' || overrides.buildings[f.id]?.remove) continue;
+    const outer = polys(f.geometry)[0]?.[0];
+    if (!outer || outer.length < 3 || heroes.some((h) => pointInRing(centroid(outer), h.ring))) continue;
+    footprints.push(openRing(outer));
+  }
+  const fpIndex = footprints.length ? new Flatbush(footprints.length) : null;
+  if (fpIndex) { for (const r of footprints) { const [a, b, c, d] = ringBox(r); fpIndex.add(a, b, c, d); } fpIndex.finish(); }
+  const inBuilding = (x: number, z: number): boolean => !!fpIndex && fpIndex.search(x, z, x, z).some((k) => pointInRing([x, z], footprints[k]!));
+
   // 7. buildings
   const walls = new MeshBuilder(), roofs = new MeshBuilder();
   const generated: Prop[] = [];
@@ -191,8 +231,9 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
     const by = minY - 0.3;
     const roof = roofKind(zone, outer, ov?.roof);
     extrudeBuilding({ rings, baseY: by, height, style: styleIndex(style), roof, roofStyle: styleIndex('tile_roof') }, walls, roofs);
-    // Water tanks and rebar stand on flat roofs only.
-    if (roof === 'flat') generated.push(...roofProps(openRing(outer), by + height, style, hash01(f.id + 'roof')));
+    // Water tanks, rebar and the other roof clutter stand on flat roofs only.
+    if (roof === 'flat') generated.push(...roofProps(openRing(outer), by + height, style, f.id, hash01));
+    generated.push(...facadeProps(openRing(outer), by + 0.3, height, f.id, nearestShopRoad, hash01));
     buildingCount++;
   }
 
@@ -234,7 +275,11 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
       }
     }
     if (spec.lights) generated.push(...alongPolyline(pts, 30, -(spec.width / 2 + 0.8), yAt));
-    if (t.highway === 'residential' || t.highway === 'unclassified') generated.push(...alongPolyline(pts, 40, spec.width / 2 + 0.6, yAt, 'powerpole'));
+    const info: RoadInfo = {
+      id: f.id, pts, width: spec.width, highway: String(t.highway), unpaved: spec.material === 'unpaved' || t.highway === 'track',
+      vehicle: spec.vehicle, commercial: isShopRoad(String(t.highway), spec), core,
+    };
+    generated.push(...utilityProps(info, yAt, hash01, inBuilding), ...streetProps(info, yAt, hash01, inBuilding));
   }
 
   for (const nid of seamStubs) { const n = nodes.get(nid); if (n) n.border = true; }
@@ -248,8 +293,12 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
   const waterData = water.finish();
 
   // 11. props and nav. Generated props are kept only inside the tile's half-open square so a
-  // roadside light near a seam belongs to exactly one tile.
-  const propsFile = PropsFile.parse({ props: [...generated.filter(inTile), ...propsExtra.props] });
+  // roadside light near a seam belongs to exactly one tile. Props inside a hero footprint are
+  // dropped, like the buildings there; curated props.extra.json entries are kept as written.
+  const inHero = (p: Prop): boolean => heroes.some((h) => pointInRing([p.x, p.z], h.ring));
+  // Prop budget: the elastic types are thinned by a common fraction when a tile exceeds it.
+  const kept = capProps(generated.filter((p) => inTile(p) && !inHero(p)), Math.max(0, MAX_PROPS_PER_TILE - 1 - propsExtra.props.length), hash01);
+  const propsFile = PropsFile.parse({ props: [...kept.props, ...propsExtra.props] });
   const nav = Nav.parse({ nodes: [...nodes.values()], edges });
   writeFileSync(`${dir}/props.json`, JSON.stringify(propsFile));
   writeFileSync(`${dir}/nav.json`, JSON.stringify(nav));
@@ -293,6 +342,11 @@ export async function buildTile(id: string, opts: BuildOptions = {}): Promise<Bu
     waterOut.bytes ? `water.glb ${fmt(waterOut.bytes)} B ${fmt(waterOut.triangles)} tris` : 'water.glb 0 B 0 tris (not written)',
     `props.json ${fmt(bytes['props.json']!)} B ${fmt(propsFile.props.length)} props, nav.json ${fmt(bytes['nav.json']!)} B ${fmt(nav.nodes.length)} nodes ${fmt(nav.edges.length)} edges`,
   ];
+  const byType: Record<string, number> = {};
+  for (const p of propsFile.props) byType[p.type] = (byType[p.type] ?? 0) + 1;
+  lines.push(`props by type: ${Object.entries(byType).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(', ')}`);
+  const droppedTotal = Object.values(kept.dropped).reduce((a, b) => a + b, 0);
+  if (droppedTotal) lines.push(`props over budget: dropped ${fmt(droppedTotal)} (${Object.entries(kept.dropped).map(([k, v]) => `${k} ${v}`).join(', ')})`);
   if (!opts.quiet) { for (const l of lines) console.log(l); console.log(`meta: ${dir}/meta.json`); }
   return { dir, meta, lines };
 }

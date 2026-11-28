@@ -1,0 +1,47 @@
+{
+  "slug": "swayambhunath",
+  "name": "Swayambhunath Stupa + hilltop complex",
+  "nameNe": "स्वयम्भू महाचैत्य",
+  "tier": "A",
+  "lat": 27.7149312,
+  "lon": 85.290386,
+  "rotationDeg": 0,
+  "scale": 1,
+  "tile": "x12_y18",
+  "footprint": [
+    [85.2901427, 27.7149943],
+    [85.2901528, 27.7148951],
+    [85.2902238, 27.7148048],
+    [85.2903252, 27.7147642],
+    [85.2904367, 27.7147056],
+    [85.2905482, 27.7147056],
+    [85.2906801, 27.7148093],
+    [85.2909639, 27.7148184],
+    [85.2909639, 27.7148906],
+    [85.2906801, 27.7149492],
+    [85.2906294, 27.7150079],
+    [85.290528, 27.715062],
+    [85.290386, 27.7151026],
+    [85.2902644, 27.7151252],
+    [85.290163, 27.7150981],
+    [85.2901427, 27.7149943]
+  ],
+  "references": [
+    "https://commons.wikimedia.org/wiki/File:Swayambhunath_stupa_(17851740001).jpg",
+    "https://commons.wikimedia.org/wiki/File:Swayambhunath-Hauptstupa-22-2013-gje.jpg",
+    "https://commons.wikimedia.org/wiki/File:Swayambhunath_Stupa_2018_26.jpg",
+    "https://commons.wikimedia.org/wiki/File:Swayambhu,_Kathmandu,_Nepal.jpg",
+    "https://commons.wikimedia.org/wiki/File:Swayambhunath_Base,_Kathmandu,_Nepal.jpg",
+    "https://commons.wikimedia.org/wiki/File:Swayambhunath_temple_-_an_ancient_religious_architecture_of_Nepal.jpg",
+    "https://commons.wikimedia.org/wiki/File:Vajra_-_Swayambhunath_(17209789814).jpg",
+    "https://commons.wikimedia.org/wiki/File:Swayambhunath_and_Bajra.jpg",
+    "https://commons.wikimedia.org/wiki/File:Harati_temple_and_shikhara_at_Swayambhunath,_Kathmandu_(September_2026).jpg",
+    "https://commons.wikimedia.org/wiki/File:Prayer_wheels_around_the_stupa_-_Swayambhunath_(17847877182).jpg",
+    "https://commons.wikimedia.org/wiki/File:Stairs_with_365_steps_to_climb_to_Swayambhunath_(17209517714).jpg",
+    "https://commons.wikimedia.org/wiki/File:Swayambhunath_Stupa_2018_03.jpg"
+  ],
+  "model": {
+    "sha256": "b2efe7bd5ad0b0fb46d2b832c72c345f11dbf04cbecc649de0a17e77f0218488",
+    "triangles": 39986
+  }
+}

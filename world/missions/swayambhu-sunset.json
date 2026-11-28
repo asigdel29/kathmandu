@@ -1,0 +1,30 @@
+{
+  "id": "swayambhu-sunset",
+  "title": "Photograph Swayambhunath at sunset",
+  "type": "photo",
+  "start": {
+    "x": -7574.3,
+    "z": -1619.5
+  },
+  "steps": [
+    {
+      "kind": "goto",
+      "x": -7852.5,
+      "z": -1654.5,
+      "radius": 40,
+      "text": "Climb up to the Swayambhunath stupa"
+    },
+    {
+      "kind": "photo",
+      "x": -7852.5,
+      "z": -1654.5,
+      "radius": 45,
+      "text": "Press F to photograph the stupa between 17:00 and 19:00",
+      "window": {
+        "fromH": 17,
+        "toH": 19
+      }
+    }
+  ],
+  "rewardText": "Sunset photo taken"
+}
