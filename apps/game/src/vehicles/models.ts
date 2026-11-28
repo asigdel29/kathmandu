@@ -84,6 +84,56 @@ function merge(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
   return out;
 }
 
+/** Give a plain three.js geometry the baked attribute set: one colour, one roughness, no lamp. */
+function paint(g: THREE.BufferGeometry, hex: number, rough = 0.8): THREE.BufferGeometry {
+  g.deleteAttribute('uv');
+  const n = g.getAttribute('position').count;
+  const c = new THREE.Color(hex);
+  const color = new Float32Array(n * 3); const surf = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { color[i * 3] = c.r; color[i * 3 + 1] = c.g; color[i * 3 + 2] = c.b; surf[i * 3] = rough; }
+  g.setAttribute('color', new THREE.BufferAttribute(color, 3));
+  g.setAttribute('surf', new THREE.BufferAttribute(surf, 3));
+  return g;
+}
+
+/** A tube of the given radius from a to b. */
+function limb(a: THREE.Vector3, b: THREE.Vector3, radius: number, hex: number, segs = 6): THREE.BufferGeometry {
+  const g = new THREE.CylinderGeometry(radius, radius, a.distanceTo(b), segs, 1);
+  const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize());
+  g.applyMatrix4(new THREE.Matrix4().compose(a.clone().add(b).multiplyScalar(0.5), q, new THREE.Vector3(1, 1, 1)));
+  return paint(g, hex);
+}
+
+/**
+ * A helmeted rider seated on a motorbike, hands on the bars: the origin is the hip, +Z forward, feet on the pegs
+ * about 0.5 m down. Built to sit at the model's `rider` anchor.
+ */
+export function createRiderGeometry(jacket = 0x2f4f7f, helmet = 0x1b1b1d): THREE.BufferGeometry {
+  const v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
+  const trousers = 0x3a3b42; const skin = 0x8a5a3c; const shoe = 0x151515;
+  const parts: THREE.BufferGeometry[] = [
+    limb(v(0, 0.04, -0.01), v(0, 0.5, 0.17), 0.17, jacket, 8), // torso, leaning toward the bars
+    paint(new THREE.BoxGeometry(0.34, 0.14, 0.26).translate(0, 0, 0), trousers),
+    paint(new THREE.SphereGeometry(0.12, 8, 6).translate(0, 0.68, 0.22), helmet, 0.4),
+    paint(new THREE.BoxGeometry(0.16, 0.05, 0.05).translate(0, 0.67, 0.33), skin),
+    limb(v(0, 0.48, 0.17), v(0, 0.64, 0.21), 0.06, skin),
+  ];
+  for (const s of [-1, 1]) {
+    parts.push(limb(v(s * 0.2, 0.46, 0.15), v(s * 0.34, 0.17, 0.58), 0.035, jacket)); // arm to the grip
+    parts.push(limb(v(s * 0.12, 0, 0), v(s * 0.2, -0.06, 0.38), 0.065, trousers)); // thigh
+    parts.push(limb(v(s * 0.2, -0.06, 0.38), v(s * 0.18, -0.46, 0.08), 0.05, trousers)); // shin
+    parts.push(paint(new THREE.BoxGeometry(0.1, 0.06, 0.2).translate(s * 0.18, -0.5, 0.14), shoe));
+  }
+  return merge(parts);
+}
+
+/** The body geometry with the rider placed at the model's rider anchor; the body itself when the model has none. */
+export function bodyWithRider(model: VehicleModel): THREE.BufferGeometry {
+  if (!model.rider) return model.body;
+  const rider = createRiderGeometry().translate(model.rider.x, model.rider.y, model.rider.z);
+  return merge([model.body.clone(), rider]);
+}
+
 /** Split a loaded GLB scene into the body geometry, the wheels and the rider anchor; throws naming every missing node. */
 export function parseVehicleModel(type: VehicleType, scene: THREE.Object3D): VehicleModel {
   scene.updateMatrixWorld(true);

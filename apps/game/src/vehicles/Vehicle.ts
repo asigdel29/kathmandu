@@ -2,7 +2,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import * as THREE from 'three/webgpu';
 import type { VehicleTuning, VehicleType } from '@ktm/schema';
 import type { Physics } from '../physics/Physics.ts';
-import type { VehicleModel, VehicleSkins } from './models.ts';
+import { createRiderGeometry, type VehicleModel, type VehicleSkins } from './models.ts';
 
 const DEG = Math.PI / 180;
 
@@ -67,6 +67,7 @@ export class Vehicle {
   private disposables: { dispose(): void }[] = [];
   /** Where a rider sits (motorbike model), a child of the lean pivot so it banks with the bike; undefined for the box fallback and other types. */
   riderAnchor?: THREE.Object3D;
+  private riderMesh?: THREE.Mesh;
 
   constructor(private scene: THREE.Scene, private physics: Physics, readonly type: VehicleType, readonly tuning: VehicleTuning, pos: THREE.Vector3, yaw: number, private skins?: VehicleSkins) {
     const t = tuning;
@@ -179,6 +180,12 @@ export class Vehicle {
       this.riderAnchor.name = 'rider';
       this.riderAnchor.position.set(model.rider.x, model.rider.y - this.rideHeight, model.rider.z);
       content.add(this.riderAnchor);
+      // The driver: a helmeted figure on the seat while the bike is occupied.
+      const riderGeo = createRiderGeometry();
+      this.riderMesh = new THREE.Mesh(riderGeo, material);
+      this.riderMesh.castShadow = true; this.riderMesh.visible = false;
+      this.riderAnchor.add(this.riderMesh);
+      this.disposables.push(riderGeo);
     }
   }
 
@@ -255,6 +262,7 @@ export class Vehicle {
     const p = this.body.translation(); const r = this.body.rotation();
     this.group.position.set(p.x, p.y, p.z);
     this.group.quaternion.set(r.x, r.y, r.z, r.w);
+    if (this.riderMesh) this.riderMesh.visible = this.occupied;
     for (const w of this.visuals) {
       const susp = this.ctl.wheelSuspensionLength(w.ray) ?? this.tuning.suspensionRestLength;
       w.pivot.position.y = this.connY - susp;

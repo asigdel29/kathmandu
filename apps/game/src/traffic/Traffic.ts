@@ -3,7 +3,7 @@ import * as THREE from 'three/webgpu';
 import type { VehicleTuning, VehicleType } from '@ktm/schema';
 import type { Physics } from '../physics/Physics.ts';
 import { VEHICLE_COLORS, wheelLayout } from '../vehicles/Vehicle.ts';
-import { steerableWheels, type VehicleModel, type VehicleSkins } from '../vehicles/models.ts';
+import { bodyWithRider, steerableWheels, type VehicleModel, type VehicleSkins } from '../vehicles/models.ts';
 import { IDM, idmAccel, idmStep } from './idm.ts';
 import { laneCentre } from './lane.ts';
 import { MIN_ROAD_WIDTH_M, pickVehicleType, spinStep, steerAngle } from './mix.ts';
@@ -456,7 +456,7 @@ export class Traffic {
     const spots = model.wheels.map((w, i) => ({ x: w.position.x, z: w.position.z, steer: steer[i] ?? false }));
     const zs = spots.map((s) => s.z);
     return {
-      body: new THREE.InstancedMesh(model.body, material, Math.max(1, max)),
+      body: new THREE.InstancedMesh(bodyWithRider(model), material, Math.max(1, max)),
       wheels: new THREE.InstancedMesh(model.wheels[0]!.geometry, material, Math.max(1, max * spots.length)),
       wheelSpots: spots, rideHeight: 0, colliderY: t.suspensionRestLength + t.wheelRadius + t.height / 2 - 0.1,
       radius: model.wheelRadius, wheelbase: Math.max(...zs) - Math.min(...zs) || 1, modelled: true,

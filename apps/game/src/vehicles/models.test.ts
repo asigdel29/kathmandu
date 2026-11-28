@@ -5,7 +5,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { VehicleTunings, VehicleType } from '@ktm/schema';
 import vehiclesJson from '../../../../world/vehicles.json';
 import { wheelLayout } from './Vehicle.ts';
-import { WHEEL_NODES, parseVehicleModel, steerableWheels } from './models.ts';
+import { WHEEL_NODES, bodyWithRider, createRiderGeometry, parseVehicleModel, steerableWheels } from './models.ts';
 
 const tunings = VehicleTunings.parse(vehiclesJson).vehicles;
 
@@ -99,6 +99,50 @@ describe('steerableWheels', () => {
     expect(steerableWheels('taxi')).toEqual([true, true, false, false]);
     expect(steerableWheels('tempo')).toEqual([true, false, false]);
     expect(steerableWheels('motorbike')).toEqual([true, false]);
+  });
+});
+
+describe('createRiderGeometry', () => {
+  const g = createRiderGeometry();
+  g.computeBoundingBox();
+  const b = g.boundingBox!;
+
+  it('carries the same attributes as a baked body, with no lamps', () => {
+    expect(Object.keys(g.attributes).sort()).toEqual(['color', 'normal', 'position', 'surf']);
+    const surf = g.getAttribute('surf');
+    for (let i = 0; i < surf.count; i++) expect(surf.getZ(i)).toBe(0);
+    expect(g.getAttribute('color').count).toBe(g.getAttribute('position').count);
+  });
+
+  it('is a seated person around the hip origin: helmet about 0.8 m up, feet about 0.5 m down, hands forward', () => {
+    expect(b.max.y).toBeGreaterThan(0.7); expect(b.max.y).toBeLessThan(0.95);
+    expect(b.min.y).toBeLessThan(-0.35); expect(b.min.y).toBeGreaterThan(-0.7);
+    expect(b.max.z).toBeGreaterThan(0.4); expect(b.max.z).toBeLessThan(0.8);
+    expect(b.max.x).toBeLessThan(0.5); expect(b.min.x).toBeGreaterThan(-0.5);
+  });
+
+  it('is cheap', () => {
+    expect(g.index!.count / 3).toBeLessThan(500);
+  });
+});
+
+describe('bodyWithRider', () => {
+  it('adds the rider at the seat and leaves the model untouched', () => {
+    const car = toyCar();
+    const r = new THREE.Object3D(); r.name = 'rider'; r.position.set(0, 0.9, -0.1);
+    car.add(r);
+    const m = parseVehicleModel('taxi', car);
+    const before = m.body.getAttribute('position').count;
+    const withRider = bodyWithRider(m);
+    expect(m.body.getAttribute('position').count).toBe(before);
+    expect(withRider.getAttribute('position').count).toBeGreaterThan(before);
+    withRider.computeBoundingBox();
+    expect(withRider.boundingBox!.max.y).toBeGreaterThan(1.5);
+  });
+
+  it('returns the body itself when there is no rider anchor', () => {
+    const m = parseVehicleModel('taxi', toyCar());
+    expect(bodyWithRider(m)).toBe(m.body);
   });
 });
 
