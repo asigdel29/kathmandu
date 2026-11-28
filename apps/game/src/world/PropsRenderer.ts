@@ -5,6 +5,8 @@ import { tileOrigin, type TileId } from '@ktm/geo';
 import type { Prop } from '@ktm/schema';
 import type { LoadedTile } from './TileLoader.ts';
 import { modelFile, placeMatrix, RENDERED, tintHex, variantOf, type PropType } from './propPlacement.ts';
+import { LAMP_HEAD_HEIGHT_M, LAMP_HEAD_REACH_M } from './lighting.ts';
+import type { Lamp } from './StreetLights.ts';
 
 const CAPACITY = 20_000;
 const HIDDEN = new THREE.Matrix4().makeScale(0, 0, 0);
@@ -41,6 +43,7 @@ interface Pool { key: string; type: PropType; mesh: THREE.InstancedMesh; free: n
 export class PropsRenderer {
   private pools = new Map<string, Pool>();
   private slots = new Map<TileId, { pool: Pool; index: number }[]>();
+  private lampsByTile = new Map<TileId, Lamp[]>();
   private gltf?: Promise<typeof import('three/addons/loaders/GLTFLoader.js')>;
   private models = new Map<string, Promise<THREE.Mesh | undefined>>();
   private color = new THREE.Color();
@@ -104,6 +107,7 @@ export class PropsRenderer {
     const used: { pool: Pool; index: number }[] = [];
     const m = new THREE.Matrix4();
     const touched = new Set<Pool>();
+    const lamps: Lamp[] = [];
     for (const prop of tile.props.props as Prop[]) {
       const p = this.pool(prop.type, variantOf(prop.type, prop.x, prop.z));
       if (!p) continue;
@@ -115,12 +119,24 @@ export class PropsRenderer {
       p.mesh.count = Math.max(p.mesh.count, index + 1);
       used.push({ pool: p, index });
       touched.add(p);
+      if (prop.type === 'streetlight') {
+        // The lamp head: up the pole and out to the side of the arm, rotated with the instance.
+        const reach = LAMP_HEAD_REACH_M * prop.scale;
+        lamps.push({ key: `${tile.id}:${index}`, x: o.x + prop.x + Math.cos(prop.rotY) * reach, y: prop.y + LAMP_HEAD_HEIGHT_M * prop.scale, z: o.z + prop.z - Math.sin(prop.rotY) * reach });
+      }
     }
     for (const p of touched) { p.mesh.instanceMatrix.needsUpdate = true; if (p.mesh.instanceColor) p.mesh.instanceColor.needsUpdate = true; }
     this.slots.set(tile.id, used);
+    this.lampsByTile.set(tile.id, lamps);
+  }
+
+  /** World positions of the streetlight heads of every loaded tile. */
+  *lamps(): Iterable<Lamp> {
+    for (const list of this.lampsByTile.values()) yield* list;
   }
 
   removeTile(id: TileId): void {
+    this.lampsByTile.delete(id);
     const used = this.slots.get(id);
     if (!used) return;
     const touched = new Set<Pool>();
