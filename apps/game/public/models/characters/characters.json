@@ -1,0 +1,59 @@
+{
+  "heightScale": 0.93,
+  "fps": 30,
+  "models": {
+    "player": {
+      "bytes": 1297732,
+      "clips": {
+        "walk": {
+          "speed": 0.908,
+          "duration": 1.3333
+        },
+        "run": {
+          "speed": 5.672,
+          "duration": 0.9333
+        },
+        "sprint": {
+          "speed": 8.634,
+          "duration": 0.6667
+        }
+      }
+    },
+    "ped_0": {
+      "bytes": 498936,
+      "clips": {
+        "walk": {
+          "speed": 0.908,
+          "duration": 1.3333
+        }
+      }
+    },
+    "ped_1": {
+      "bytes": 665360,
+      "clips": {
+        "walk": {
+          "speed": 0.874,
+          "duration": 1.3333
+        }
+      }
+    },
+    "ped_2": {
+      "bytes": 523764,
+      "clips": {
+        "walk": {
+          "speed": 0.908,
+          "duration": 1.3333
+        }
+      }
+    },
+    "ped_3": {
+      "bytes": 700708,
+      "clips": {
+        "walk": {
+          "speed": 0.874,
+          "duration": 1.3333
+        }
+      }
+    }
+  }
+}
