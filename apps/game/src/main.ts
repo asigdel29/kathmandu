@@ -18,7 +18,7 @@ import { MissionSystem } from './missions/MissionSystem.ts';
 import { createFacadeMaterial, createNightUniform } from './materials/facade.ts';
 import { uniform } from 'three/tsl';
 import { Physics } from './physics/Physics.ts';
-import { Character } from './player/Character.ts';
+import { Character, seatOffset } from './player/Character.ts';
 import { IdleTracker, wetness } from './post/quality.ts';
 import { createRenderer } from './renderer.ts';
 import { loadResume, type SaveData, type SaveStorage, startAutosave } from './state/Save.ts';
@@ -158,6 +158,11 @@ async function main(): Promise<void> {
     }
   }
   const groundY = (x: number, z: number) => (streamer.heightAt(x, z) ?? BASE_ELEVATION_M) - BASE_ELEVATION_M;
+  // A fresh start on foot faces down the street, with the orbit camera behind the character.
+  if (!target && !resume.position && !debugMission.lookAt && !config.vehicle) {
+    player.heading = yawTowards(start, lookAt);
+    follow.yaw = player.heading + Math.PI;
+  }
   if (debugMission.lookAt && !target) lookAt.set(debugMission.lookAt.x, 0, debugMission.lookAt.z);
   if (debugMission.lookAt && !target && !config.vehicle) {
     // On foot, face the first mission target so its marker is in view.
@@ -203,11 +208,13 @@ async function main(): Promise<void> {
   const enter = (v: Vehicle) => {
     driving = v; v.occupied = true;
     player.setActive(false);
+    player.setDriving(v.group, seatOffset(v.type));
     follow.setMode('drive');
   };
   const exit = (v: Vehicle) => {
     const p = v.exitPoint();
     v.occupied = false; driving = null;
+    player.setDriving(null);
     player.teleport(p.x, p.y + CAPSULE_LIFT_M, p.z);
     player.heading = v.yaw;
     player.setActive(true);
@@ -229,7 +236,7 @@ async function main(): Promise<void> {
   await heroes.update(streamer.loaded());
   debug.trafficCount = traffic?.count ?? 0;
   debug.pedCount = peds?.count ?? 0;
-  window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic, audio, temples, streetLights, post, peds, missions, markers, minimap, mapScreen, waypoint, missionMarkers };
+  window.__ktm = { follow, lookAt, physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic, audio, temples, streetLights, post, peds, missions, markers, minimap, mapScreen, waypoint, missionMarkers };
   streetLights.update(1, start, night.value); // lamps on before the first render, so the lit pipelines are compiled in the warm-up
   await facade.userData.texturesReady;
   // Warm-up: render until the frame time settles (pipeline compiles and temporal history allocation happen in
@@ -285,7 +292,7 @@ async function main(): Promise<void> {
         const axes = input.driveAxes();
         // Every vehicle needs its controller updated each step; unoccupied ones ignore the input and hold the handbrake.
         for (const v of vehicles) v.controls(axes, STEP);
-        if (!driving) player.update(STEP, input, camera);
+        player.update(STEP, input, camera); // while driving this only ticks the seated pose
         physics.step(STEP);
       }
       for (let i = vehicles.length - 1; i >= 0; i--) {
@@ -313,6 +320,9 @@ async function main(): Promise<void> {
         }
         peds.update(steps * STEP, focusPos, cars);
       }
+    } else if (peds) {
+      // A frozen scene still hands the people their figures once the models have loaded.
+      peds.update(0, player.position);
     }
     const car: Vehicle | null = driving;
     if (car) focus.copy(car.group.position); else focus.copy(player.position);
