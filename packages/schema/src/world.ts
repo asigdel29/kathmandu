@@ -47,7 +47,8 @@ export type Prop = z.infer<typeof Prop>;
 export const NavNode = z.object({ id: z.string().regex(/^n_-?\d+_-?\d+$/), x: z.number(), y: z.number(), z: z.number(), border: z.boolean() });
 export const NavEdge = z.object({
   from: z.string(), to: z.string(),
-  lanes: z.number().int().min(1), oneway: z.boolean(), speed: z.number().positive(), cls: z.string(), width: z.number().positive(),
+  /** 0 for pedestrian-only edges (footway, path, pedestrian, steps). */
+  lanes: z.number().int().min(0), oneway: z.boolean(), speed: z.number().positive(), cls: z.string(), width: z.number().positive(),
 });
 export const Nav = z.object({ nodes: z.array(NavNode), edges: z.array(NavEdge) });
 export type Nav = z.infer<typeof Nav>;

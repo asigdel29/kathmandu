@@ -202,6 +202,7 @@ export function buildRoadMarkings(nav: Nav, height: Float32Array): RoadMarkings 
   const arms = new Map<string, { other: string; width: number; marked: boolean }[]>();
   const push = (id: string, a: { other: string; width: number; marked: boolean }) => { const l = arms.get(id); if (l) l.push(a); else arms.set(id, [a]); };
   for (const e of nav.edges) {
+    if (e.lanes === 0) continue; // pedestrian-only ways take no part in junctions or crossings
     const marked = MARKED.has(e.cls);
     push(e.from, { other: e.to, width: e.width, marked }); push(e.to, { other: e.from, width: e.width, marked });
   }

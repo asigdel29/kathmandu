@@ -185,4 +185,64 @@ describe('TrafficSim', () => {
     expect(sim.cars.length).toBe(0);
     expect(gone).toHaveLength(5);
   });
+
+  describe('foot-class edges', () => {
+    const FOOT = ['footway', 'path', 'pedestrian', 'steps'];
+    /** The street grid plus, at every node, a footway spur, and a path cutting every block diagonally. */
+    function gridWithFootways(): Nav {
+      const nav = gridNav();
+      const byXZ = new Map(nav.nodes.map((n) => [`${n.x},${n.z}`, n]));
+      const foot = (a: { id: string }, b: { id: string }, k: number) => ({ from: a.id, to: b.id, lanes: 0, oneway: false, speed: 5, cls: FOOT[k % FOOT.length]!, width: 2 });
+      let k = 0;
+      for (const n of [...nav.nodes]) {
+        const s = node(n.x + 20, n.z + 20);
+        nav.nodes.push(s);
+        nav.edges.push(foot(n, s, k++));
+        const d = byXZ.get(`${n.x + 100},${n.z + 100}`);
+        if (d) nav.edges.push(foot(n, d, k++));
+      }
+      return nav;
+    }
+
+    it('never spawns on or routes onto a foot-class edge in 1,000 steps', () => {
+      const nav = gridWithFootways();
+      const g = graphOf(nav);
+      expect([...g.edges()].filter((e) => e.lanes === 0).length).toBeGreaterThan(40);
+      const sim = new TrafficSim(g, SPECS, { max: 40, random: rng(11) });
+      const player = world(350, 350);
+      let seen = 0;
+      for (let i = 0; i < 1000; i++) {
+        sim.step(1 / 30, player);
+        for (const a of sim.cars) {
+          seen++;
+          expect(a.edge.lanes, `car ${a.id} on ${a.edge.cls}`).toBeGreaterThan(0);
+          expect(FOOT).not.toContain(a.edge.cls);
+          for (const x of a.route) { expect(x.edge.lanes).toBeGreaterThan(0); expect(FOOT).not.toContain(x.edge.cls); }
+        }
+      }
+      expect(seen).toBeGreaterThan(10_000);
+    });
+
+    it('treats a footway-only spur as a dead end for vehicles, even when it is the only other way on', () => {
+      const a = node(0, 50); const b = node(200, 50); const f = node(200, 150);
+      const g = graphOf({ nodes: [a, b, f], edges: [edge(a, b), { from: b.id, to: f.id, lanes: 0, oneway: false, speed: 5, cls: 'footway', width: 2 }] });
+      const sim = new TrafficSim(g, SPECS, { max: 0, random: rng(2) });
+      const car = sim.addCar('taxi', findEdge(g, a.id, b.id), true, 150, 5);
+      expect(car.route.every((x) => x.edge.cls !== 'footway')).toBe(true);
+      for (let i = 0; i < 600 && sim.cars.length > 0; i++) { sim.step(1 / 30, world(100, 50)); expect(car.edge.cls).not.toBe('footway'); }
+    });
+
+    it('does not yield at a two-road node just because a footway meets it', () => {
+      const a = node(0, 50); const b = node(100, 50); const c = node(200, 50); const f = node(100, 150);
+      const g = graphOf({ nodes: [a, b, c, f], edges: [edge(a, b), edge(b, c), { from: b.id, to: f.id, lanes: 0, oneway: false, speed: 5, cls: 'path', width: 1.5 }] });
+      expect(g.degree(b.id)).toBe(3);
+      expect(g.driveDegree(b.id)).toBe(2);
+      const sim = new TrafficSim(g, SPECS, { max: 0, random: rng(1) });
+      const car = sim.addCar('taxi', findEdge(g, a.id, b.id), true, 30, 6);
+      const other = sim.addCar('taxi', findEdge(g, b.id, c.id), true, 1, 6);
+      sim.step(1 / 30, world(0, 0));
+      expect(car.yielding).toBe(false);
+      expect(other.yielding).toBe(false);
+    });
+  });
 });

@@ -1,6 +1,11 @@
 import { tileOrigin, type TileId } from '@ktm/geo';
 import type { Nav } from '@ktm/schema';
 
+/** Edge classes that are pedestrian-only: nav.json carries them with lanes 0, and vehicles never use them. */
+export const FOOT_CLASSES: ReadonlySet<string> = new Set(['footway', 'path', 'pedestrian', 'steps']);
+/** Whether a vehicle may drive on the edge. */
+export const isDrivable = (e: { cls: string; lanes: number }): boolean => e.lanes > 0 && !FOOT_CLASSES.has(e.cls);
+
 /** A nav node in world coordinates. */
 export interface GraphNode { id: string; x: number; y: number; z: number }
 
@@ -103,6 +108,8 @@ export class NavGraph {
   *edges(): IterableIterator<GraphEdge> { for (const t of this.tiles.values()) yield* t.edges; }
   edgesAt(nodeId: string): GraphEdge[] { const e = this.entries.get(nodeId); return e ? [...e.edges] : []; }
   degree(nodeId: string): number { return this.entries.get(nodeId)?.edges.size ?? 0; }
+  /** Number of edges at the node that vehicles may drive on (foot-class edges excluded). */
+  driveDegree(nodeId: string): number { let n = 0; for (const e of this.entries.get(nodeId)?.edges ?? []) if (isDrivable(e)) n++; return n; }
 
   /** Edges that may be driven away from `nodeId`; oneway edges only from their `from` end. */
   exits(nodeId: string): Exit[] {

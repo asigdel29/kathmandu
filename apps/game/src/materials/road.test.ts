@@ -41,6 +41,16 @@ describe('road markings', () => {
     expect(m.dash.indices).toHaveLength(0);
   });
 
+  it('ignores foot-class edges (lanes 0): a footway joining a road is no junction and gets no crossing', () => {
+    const nav: Nav = {
+      nodes: [node('a', 100, 100), node('b', 200, 100), node('c', 300, 100), node('f', 200, 200)],
+      edges: [edge('a', 'b', 'primary'), edge('b', 'c', 'primary'), { from: 'b', to: 'f', lanes: 0, oneway: false, speed: 5, cls: 'footway', width: 2 }],
+    };
+    const m = buildRoadMarkings(nav, flat(1300));
+    expect(m.crossings).toBe(0);
+    expect(m.dash.indices.length).toBeGreaterThan(0);
+  });
+
   it('skips plain bends and dead ends (fewer than 3 edges)', () => {
     const nav: Nav = { nodes: [node('a', 100, 100), node('b', 200, 100), node('c', 300, 100)], edges: [edge('a', 'b', 'primary'), edge('b', 'c', 'primary')] };
     const m = buildRoadMarkings(nav, flat(1300));

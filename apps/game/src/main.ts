@@ -143,13 +143,18 @@ async function main(): Promise<void> {
   const nav = streamer.loaded().get(config.tile)?.nav;
   if (!spawn && nav) {
     let best = Infinity; let startId = '';
+    // Foot-class edges (lanes 0) are in the graph for pedestrians; the start stays on a street.
+    const streetNodes = new Set<string>();
+    for (const e of nav.edges) if (e.lanes > 0) { streetNodes.add(e.from); streetNodes.add(e.to); }
     for (const n of nav.nodes) {
+      if (streetNodes.size > 0 && !streetNodes.has(n.id)) continue;
       const d = (o.x + n.x - centre.x) ** 2 + (o.z + n.z - centre.z) ** 2;
       if (d < best) { best = d; startId = n.id; start.x = o.x + n.x; start.z = o.z + n.z; }
     }
     const byId = new Map(nav.nodes.map((n) => [n.id, n]));
     let longest = 0;
     for (const e of nav.edges) {
+      if (e.lanes === 0) continue;
       const other = e.from === startId ? e.to : e.to === startId ? e.from : undefined;
       const n = other ? byId.get(other) : undefined;
       if (!n) continue;

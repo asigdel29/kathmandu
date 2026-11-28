@@ -11,6 +11,8 @@ export const ROAD_SPEC: Record<string, RoadSpec> = {
   unclassified: R(5.5, 1, 25), residential: R(6, 2, 25), living_street: R(4, 1, 10), service: R(4.5, 1, 15),
   footway: P(2), path: P(1.5), pedestrian: P(4), track: P(2.5), steps: P(1.5),
 };
+/** Highway classes exported to nav.json as pedestrian-only edges (lanes 0). Mirrors FOOT_CLASSES in apps/game/src/traffic/NavGraph.ts. */
+export const NAV_FOOT_CLASSES: ReadonlySet<string> = new Set(['footway', 'path', 'pedestrian', 'steps']);
 export function roadSpec(cls: string, surface?: string): RoadSpec {
   const s = ROAD_SPEC[cls] ?? ROAD_SPEC.unclassified!;
   const unpaved = surface && /unpaved|dirt|gravel|ground|earth|compacted|fine_gravel|mud|sand/.test(surface);

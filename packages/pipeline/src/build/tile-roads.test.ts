@@ -106,10 +106,12 @@ describe('roads on sloped terrain', () => {
     expect(changedNear).toBeGreaterThan(10);
   });
 
-  it('puts nav nodes on the flattened surface with unchanged topology', () => {
-    expect(nav.nodes).toHaveLength(3);
-    expect(nav.edges).toHaveLength(2);
+  it('puts nav nodes on the flattened surface with unchanged road topology (the footway adds one foot edge)', () => {
+    expect(nav.nodes).toHaveLength(5);
+    expect(nav.edges).toHaveLength(3);
+    expect(nav.edges.filter((e) => e.lanes > 0)).toHaveLength(2);
+    expect(nav.edges.filter((e) => e.lanes === 0)).toHaveLength(1);
     for (const n of nav.nodes) expect(Math.abs(n.y - (meshHeightAt(flat, n.x, n.z) - BASE_ELEVATION_M))).toBeLessThanOrEqual(1e-3);
-    expect(nav.nodes.map((n) => [n.x, n.z])).toEqual(ROAD);
+    expect(nav.nodes.slice(0, 3).map((n) => [n.x, n.z])).toEqual(ROAD);
   });
 });
