@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
-import { HEIGHTMAP_N } from '@ktm/geo';
+import { HEIGHTMAP_N, localToLonLat, tileOrigin } from '@ktm/geo';
 import { Nav, PropsFile, TileMeta } from '@ktm/schema';
 import { fixtureInputs } from '../../test/fixture-tile.ts';
 import { buildTile } from './tile.ts';
@@ -66,4 +66,33 @@ it('keeps the border flag when a road vertex lies within 1 cm of the tile edge',
   expect(border).toHaveLength(1);
   expect(border[0]!.x).toBeCloseTo(800, 2);
   expect(nav.edges).toHaveLength(1);
+});
+
+it('drops generated props inside a hero footprint and keeps curated ones', async () => {
+  const id = 'x14_y17';
+  const origin = tileOrigin(id);
+  const box = { x0: 300, z0: 300, x1: 500, z1: 500 };
+  const inBox = (p: { x: number; z: number }) => p.x >= box.x0 && p.x <= box.x1 && p.z >= box.z0 && p.z <= box.z1;
+  const build = async (withHero: boolean) => {
+    const inp = fixtureInputs();
+    const forest = { id: 'g1', kind: 'green', geometry: { type: 'Polygon', coordinates: [[[0, 0], [790, 0], [790, 790], [0, 790], [0, 0]]] }, properties: { landuse: 'forest' } };
+    writeFileSync(`${inp.featuresDir}/${id}.geojsonl`, `${JSON.stringify(forest)}\n`);
+    mkdirSync(`${inp.worldDir}/tiles/${id}`, { recursive: true });
+    const curated = { type: 'tree', x: 400, y: 1350, z: 400, rotY: 0, scale: 1 };
+    writeFileSync(`${inp.worldDir}/tiles/${id}/props.extra.json`, JSON.stringify({ props: [curated] }));
+    if (withHero) {
+      const ring = [[box.x0, box.z0], [box.x1, box.z0], [box.x1, box.z1], [box.x0, box.z1], [box.x0, box.z0]]
+        .map(([x, z]) => { const p = localToLonLat(origin.x + x!, origin.z + z!); return [p.lon, p.lat]; });
+      mkdirSync(`${inp.worldDir}/heroes/fixture`, { recursive: true });
+      writeFileSync(`${inp.worldDir}/heroes/fixture/hero.json`, JSON.stringify({ slug: 'fixture', name: 'Fixture', tier: 'A', lat: 27.7, lon: 85.3, footprint: ring }));
+    }
+    const res = await buildTile(id, { ...inp, outDir: `${inp.outRoot}/${id}`, quiet: true });
+    return PropsFile.parse(JSON.parse(readFileSync(`${res.dir}/props.json`, 'utf8'))).props;
+  };
+  const without = await build(false);
+  expect(without.filter((p) => p.type === 'tree' && inBox(p)).length).toBeGreaterThan(1);
+  const withHero = await build(true);
+  const inside = withHero.filter(inBox);
+  expect(inside).toEqual([{ type: 'tree', x: 400, y: 1350, z: 400, rotY: 0, scale: 1 }]);
+  expect(withHero.filter((p) => p.type === 'tree').length).toBeGreaterThan(1);
 });

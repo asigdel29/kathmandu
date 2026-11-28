@@ -84,9 +84,12 @@ jobs:
           path: dist/shots/*.png
       - name: publish shots and comment
         if: github.event_name == 'pull_request' && steps.changed.outputs.tiles != '' && env.WORLD_BASE_URL != ''
+        continue-on-error: true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           GH_TOKEN: ${{ github.token }}
           WRANGLER: bunx wrangler@4.122.0
-        run: bun run pipeline pr-comment ${{ github.event.pull_request.number }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "no Cloudflare token: skipping shot publish"; exit 0; fi
+          bun run pipeline pr-comment ${{ github.event.pull_request.number }}
