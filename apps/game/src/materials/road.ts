@@ -1,4 +1,5 @@
 import * as THREE from 'three/webgpu';
+import type { UniformNode } from 'three/webgpu';
 import { abs, attribute, float, fract, mix, mx_noise_float, positionWorld, smoothstep, step, texture, vec2, vec3 } from 'three/tsl';
 import type { Node } from 'three/webgpu';
 import { BASE_ELEVATION_M, HEIGHTMAP_N, HEIGHT_STEP } from '@ktm/geo';
@@ -18,6 +19,11 @@ export function loadRoadTextures(base: string, loader?: THREE.TextureLoader): Ro
   for (const k of Object.keys(ROAD_TEXTURE_FILES) as RoadLayer[]) out[k] = loadRepeatingTexture(`${base}${ROAD_TEXTURE_FILES[k]}`, loader);
   return out;
 }
+
+/** Roughness of wet asphalt: low enough (< 0.35) for the screen-space reflections to pick it up. */
+export const WET_ASPHALT_ROUGHNESS = 0.1;
+/** Albedo multiplier of fully wet asphalt: wet surfaces read darker. */
+export const WET_ASPHALT_DARKEN = 0.62;
 
 /** Asphalt is the photo darkened to a worn, sun-bleached grey. */
 const ASPHALT_GAIN = 0.75;
@@ -56,7 +62,7 @@ function decal(): THREE.MeshStandardNodeMaterial {
  * Road surfaces. Every surface samples its texture in world space (the ribbon's v still runs 0..1 across, which
  * is all the dusty edge needs), so the pattern does not stretch on wide or curved roads.
  */
-export function createRoadMaterials(tex: RoadTextures): RoadMaterials {
+export function createRoadMaterials(tex: RoadTextures, wet?: UniformNode<'float'>): RoadMaterials {
   const wp = positionWorld.xz as unknown as N2;
   const v = attribute('uv', 'vec2').y as unknown as N;
   const n40 = macroNoise(wp);
@@ -76,8 +82,14 @@ export function createRoadMaterials(tex: RoadTextures): RoadMaterials {
     const edge = smoothstep(0.72, 1.0, across.add(nGrit.mul(0.08)));
     const dustAmount = edge.mul(float(0.55).add(nWear.mul(0.25)));
     c = mix(c, hex(DUST).mul(0.55), dustAmount) as N3;
+    let rough = mix(float(0.88), float(0.7), faded.mul(2)).add(edge.mul(0.1)) as N;
+    // Wet asphalt (the `wet` uniform, 0 dry .. 1 wet): darker and glossy, so the reflections pass picks it up.
+    if (wet) {
+      c = c.mul(mix(float(1), float(WET_ASPHALT_DARKEN), wet)) as N3;
+      rough = mix(rough, float(WET_ASPHALT_ROUGHNESS), wet) as N;
+    }
     asphalt.colorNode = c;
-    asphalt.roughnessNode = mix(float(0.88), float(0.7), faded.mul(2)).add(edge.mul(0.1));
+    asphalt.roughnessNode = rough;
   }
 
   // Unpaved: the dirt texture pulled towards dust (the raw photo is far more orange than valley dirt), with ruts.
