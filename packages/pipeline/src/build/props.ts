@@ -90,10 +90,12 @@ export function roofProps(ring: XZ[], roofY: number, style: string, id: string, 
   let cx = 0, cz = 0; for (const [x, z] of ring) { cx += x / n; cz += z / n; }
   const area = ringArea(ring);
   const inward = (k: number, f: number): XZ => { const v = ring[((k % n) + n) % n]!; return [cx + (v[0] - cx) * f, cz + (v[1] - cz) * f]; };
-  const put = (type: Prop['type'], [x, z]: XZ, rotY: number): boolean => {
+  const put = (type: Prop['type'], [x, z]: XZ, rotY: number, scale = 1): boolean => {
     if (!pointInRing([x, z], ring)) return false;
-    out.push({ type, x, y: roofY, z, rotY, scale: 1 }); return true;
+    out.push({ type, x, y: roofY, z, rotY, scale }); return true;
   };
+  // Clutter and pots are drawn larger on big roofs (up to 1.7x), as a roof's worth of stuff rather than one patch.
+  const roofScale = Math.min(1.7, Math.max(1, Math.sqrt(area) / 7));
   const kTank = Math.floor(hash(`${id}:tankpos`) * n);
   let tank: XZ | undefined;
   if (style.startsWith('rcc') && area >= 20) {
@@ -109,13 +111,13 @@ export function roofProps(ring: XZ[], roofY: number, style: string, id: string, 
     let p = inward(k, 0.3);
     // keep clear of the water tank
     if (tank && Math.hypot(p[0] - tank[0], p[1] - tank[1]) < 2) p = inward(k + Math.floor(n / 2), 0.3);
-    put('rooftop_clutter', p, hash(`${id}:clutterrot`) * 6.283);
+    put('rooftop_clutter', p, hash(`${id}:clutterrot`) * 6.283, roofScale);
   }
   if (area >= 20 && hash(`${id}:pots`) < 0.25) {
     const e = Math.floor(hash(`${id}:potspos`) * n);
     const a = ring[e % n]!, b = ring[(e + 1) % n]!;
     const mx = (a[0] + b[0]) / 2, mz = (a[1] + b[1]) / 2;
-    put('parapet_pots', [mx + (cx - mx) * 0.12, mz + (cz - mz) * 0.12], Math.atan2(b[0] - a[0], b[1] - a[1]) - Math.PI / 2);
+    put('parapet_pots', [mx + (cx - mx) * 0.12, mz + (cz - mz) * 0.12], Math.atan2(b[0] - a[0], b[1] - a[1]) - Math.PI / 2, roofScale);
   }
   return out;
 }

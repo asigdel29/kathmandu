@@ -9,8 +9,8 @@ from lib import Mesh, hexcol, export, hash01
 m = Mesh()
 GREY = [hexcol('#8a8884'), hexcol('#b0aea8'), hexcol('#6c6a66')]
 # stacked boxes and a bucket
-m.box(-1.4, 0.0, -0.9, -0.6, 0.5, -0.3, GREY[0])
-m.box(-0.8, 0.0, -1.2, -0.3, 0.35, -0.7, GREY[1])
+m.box(-1.4, 0.0, -0.9, -0.6, 0.5, -0.3, hexcol('tin_blue'))   # a tarped stack
+m.box(-0.8, 0.0, -1.2, -0.3, 0.35, -0.7, hexcol('saffron'))
 m.box(-1.5, 0.0, 0.0, -0.8, 0.6, 0.4, GREY[2])
 m.box(-1.2, 0.6, 0.05, -0.9, 0.75, 0.35, GREY[0])
 m.cyl(-0.2, -0.9, 0.0, 0.3, 0.18, 0.15, 8, hexcol('#3b6ea5'))
