@@ -26,8 +26,9 @@ import { TileLoader, createSurfaceMaterials } from './world/TileLoader.ts';
 import { TileStreamer } from './world/TileStreamer.ts';
 import { NavGraph } from './traffic/NavGraph.ts';
 import { Traffic } from './traffic/Traffic.ts';
+import { Pedestrians, type PedCar } from './people/Pedestrians.ts';
 
-interface KtmDebug { speed: number; speedKmh: number; driving: VehicleType | null; vehicles: number; trafficCount: number; audio?: AudioState; temples: number }
+interface KtmDebug { speed: number; speedKmh: number; driving: VehicleType | null; vehicles: number; trafficCount: number; audio?: AudioState; temples: number; pedCount: number }
 declare global { interface Window { __ktmReady?: boolean; __ktm?: unknown; __ktmDebug?: KtmDebug } }
 
 const STEP = 1 / 60;
@@ -87,7 +88,7 @@ async function main(): Promise<void> {
   const input = new Input(renderer.domElement);
   const follow = new FollowCamera(camera, config.view);
   const hud = new Hud(document.getElementById('hud')!);
-  const debug: KtmDebug = { speed: 0, speedKmh: 0, driving: null, vehicles: 0, trafficCount: 0, temples: 0 };
+  const debug: KtmDebug = { speed: 0, speedKmh: 0, driving: null, vehicles: 0, trafficCount: 0, temples: 0, pedCount: 0 };
   window.__ktmDebug = debug;
   // Sound stays silent until the first key or pointer press (browser autoplay rule).
   const audio = new GameAudio(camera, scene, `${import.meta.env.BASE_URL}audio/`);
@@ -135,6 +136,23 @@ async function main(): Promise<void> {
     : undefined;
   traffic?.update(0, start);
 
+  // Pedestrians walk the same graph (road edges and foot-class edges), denser in `*-core` zones, and start at ped_spawn props.
+  const terrainY = (x: number, z: number) => { const h = streamer.heightAt(x, z); return h === undefined ? undefined : h - BASE_ELEVATION_M; };
+  const peds = config.peds
+    ? new Pedestrians(scene, graph, { groundY: terrainY, zoneOf: (id) => streamer.loaded().get(id)?.meta.zone })
+    : undefined;
+  let pedSpawnVersion = -1;
+  const syncPedSpawns = () => {
+    if (!peds || pedSpawnVersion === graph.version) return;
+    pedSpawnVersion = graph.version;
+    peds.setSpawnPoints(navTiles().flatMap((t) => {
+      const to = tileOrigin(t.id);
+      return (t.props?.props ?? []).filter((p) => p.type === 'ped_spawn').map((p) => ({ x: to.x + p.x, z: to.z + p.z }));
+    }));
+  };
+  syncPedSpawns();
+  peds?.update(0, start);
+
   // Parked vehicles at the taxi_spawn props of the loaded lod-0 tiles, else one of each type near the spawn.
   const vehicles: Vehicle[] = [];
   const spawnTiles = [...streamer.loaded().values()].flatMap((t) => (t.lod === 0 && t.props ? [{ origin: tileOrigin(t.id), props: t.props.props }] : []));
@@ -172,7 +190,8 @@ async function main(): Promise<void> {
   debug.driving = startVehicle ?? null;
   await heroes.update(streamer.loaded());
   debug.trafficCount = traffic?.count ?? 0;
-  window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic, audio, temples, streetLights, post };
+  debug.pedCount = peds?.count ?? 0;
+  window.__ktm = { physics, streamer, heroes, player, sky, scene, camera, clock, night, vehicles, graph, traffic, audio, temples, streetLights, post, peds };
   streetLights.update(1, start, night.value); // lamps on before the first render, so the lit pipelines are compiled in the warm-up
   await facade.userData.texturesReady;
   // Warm-up: render until the frame time settles (pipeline compiles and temporal history allocation happen in
@@ -232,11 +251,24 @@ async function main(): Promise<void> {
         // A parked vehicle whose tile streamed out has nothing under it; drop it once it has fallen away.
         if (!v.occupied && v.group.position.y < LOST_BELOW_Y) { v.dispose(); vehicles.splice(i, 1); }
       }
+      if (traffic || peds) graph.sync(navTiles());
+      const at: Vehicle | null = driving;
+      const focusPos = at ? at.group.position : player.position;
       if (traffic) {
         // Kinematic targets set here are reached by the colliders during the next frame's physics steps.
-        graph.sync(navTiles());
-        const at: Vehicle | null = driving;
-        traffic.update(steps * STEP, at ? at.group.position : player.position);
+        traffic.update(steps * STEP, focusPos);
+      }
+      if (peds) {
+        syncPedSpawns();
+        // People wait for ambient traffic and for any drivable vehicle that is moving.
+        const cars: PedCar[] = traffic ? traffic.sim.cars.map((c) => ({ x: c.x, z: c.z, yaw: c.yaw, length: c.length, width: c.width, v: c.v })) : [];
+        for (const v of vehicles) {
+          const sp = Math.abs(v.speedMs);
+          if (sp < 0.5) continue;
+          const p = v.group.position;
+          cars.push({ x: p.x, z: p.z, yaw: v.speedMs >= 0 ? v.yaw : v.yaw + Math.PI, length: v.tuning.length, width: v.tuning.width, v: sp });
+        }
+        peds.update(steps * STEP, focusPos, cars);
       }
     }
     const car: Vehicle | null = driving;
@@ -254,6 +286,7 @@ async function main(): Promise<void> {
     const speed = car ? Math.abs(car.speedMs) : 0;
     debug.speed = speed; debug.speedKmh = msToKmh(speed); debug.driving = car ? car.type : null; debug.vehicles = vehicles.length;
     debug.trafficCount = traffic?.count ?? 0;
+    debug.pedCount = peds?.count ?? 0;
     if (input.mutePressed) audio.toggleMute();
     temples.sync(streamer.loaded().values());
     const at = tileIndexAt(focus.x, focus.z);
