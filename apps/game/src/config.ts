@@ -12,6 +12,8 @@ export interface Config {
   hero?: string;
   /** Ambient traffic; off with `traffic=0`. */
   traffic: boolean;
+  /** Pedestrians; off with `peds=0`. */
+  peds: boolean;
   /** Post-processing tier; undefined = chosen from the first 2 s of frame time. */
   quality?: Quality;
   /** false (`taa=0`) uses MSAA 4x instead of the temporal resolve. */
@@ -41,6 +43,7 @@ export function readConfig(search: string, worldBase: string): Config {
     autodrive: q.get('autodrive') === '1',
     hero: hero && /^[a-z0-9-]+$/.test(hero) ? hero : undefined,
     traffic: q.get('traffic') !== '0',
+    peds: q.get('peds') !== '0',
     // Frozen-clock and autodrive runs are scripted captures: pinned to `high` so a slow software renderer is not demoted.
     quality: parseQuality(q.get('quality')) ?? (q.get('freeze') === '1' || q.get('autodrive') === '1' ? 'high' : undefined),
     taa: q.get('taa') !== '0',
