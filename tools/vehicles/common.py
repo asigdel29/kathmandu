@@ -263,6 +263,24 @@ def parent_all(objs, parent):
         o.parent = parent
 
 
+def strip_generator(path):
+    """Drop the exporter's `asset.generator` string so the file only says what it contains."""
+    import json
+    import struct
+    with open(path, 'rb') as f:
+        data = f.read()
+    magic, version, _total = struct.unpack('<4sII', data[:12])
+    jlen, jtype = struct.unpack('<I4s', data[12:20])
+    doc = json.loads(data[20:20 + jlen])
+    doc.get('asset', {}).pop('generator', None)
+    raw = json.dumps(doc, separators=(',', ':')).encode()
+    raw += b' ' * (-len(raw) % 4)
+    rest = data[20 + jlen:]
+    out = struct.pack('<4sII', magic, version, 12 + 8 + len(raw) + len(rest)) + struct.pack('<I4s', len(raw), jtype) + raw + rest
+    with open(path, 'wb') as f:
+        f.write(out)
+
+
 def finish(name, body_meshes, wheels, extra=(), preview=True):
     """Join the body meshes under a `body` object, add a root, export `<name>.glb` and a quick preview render."""
     body = None
@@ -274,7 +292,6 @@ def finish(name, body_meshes, wheels, extra=(), preview=True):
         bpy.ops.object.join()
     body = bpy.context.view_layer.objects.active
     body.name = 'body'
-    fix_normals(body)
     root = bpy.data.objects.new(name, None)
     bpy.context.scene.collection.objects.link(root)
     body.parent = root
@@ -293,6 +310,7 @@ def finish(name, body_meshes, wheels, extra=(), preview=True):
         export_materials='EXPORT', export_cameras=False, export_lights=False, export_extras=False,
         export_image_format='NONE', export_texcoords=False, export_normals=True, export_tangents=False,
     )
+    strip_generator(path)
     print(f'[{name}] wrote {path} ({os.path.getsize(path)} bytes)')
     prev = os.environ.get('VEHICLE_PREVIEW')
     if preview and prev:

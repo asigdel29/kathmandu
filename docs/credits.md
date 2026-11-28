@@ -14,3 +14,7 @@ All sounds are released under the Creative Commons CC0 1.0 Universal public doma
 | `engine-loop.mp3` | Car engine loop; playback rate follows vehicle speed | https://opengameart.org/content/racing-car-engine-sound-loops (`loop_0.wav`) | domasx2 (cut from a public-domain pdsounds.org recording) | CC0 1.0 | loudness normalised, re-encoded |
 | `horn.mp3` | Car horn, double honk | https://freesound.org/people/DeVern/sounds/349922/ ("Car Horn Honk.wav") | DeVern | CC0 1.0 | 1.42–3.10 s excerpt, short fades, loudness normalised, mono |
 | `temple-bell.mp3` | Temple bell at the Pashupatinath old-age home, Kathmandu | https://freesound.org/people/pashupati_007/sounds/199901/ ("bell_rings.mp3") | pashupati_007 | CC0 1.0 | single strike from 11.0 s, 7 s with 2 s fade-out, loudness normalised |
+
+## Vehicle models
+
+No third-party models. `apps/game/public/models/vehicles/*.glb` (tempo, taxi, motorbike, micro, bus, truck) are original work, built by the Blender Python scripts in `tools/vehicles/` and released under the same licence as this repository. Shapes follow the vehicles seen on Kathmandu roads (Safa tempo, Maruti-style taxi, commuter motorbike, microbus, Sajha-style bus, Tata-style lorry); they carry no brand names, logos or text. Documented in `docs/vehicles.md`.

@@ -85,7 +85,7 @@ body.box(0, 2.95, Z_END + 0.04, 1.4, 0.26, 0.06, 'dark')  # destination board, n
 body.box(0, 0.7, Z_END + 0.05, 2.3, 0.2, 0.1, 'bumper')    # front bumper
 body.box(0, 1.05, Z_END + 0.035, 0.9, 0.36, 0.03, 'dark')  # grille
 for sx in (-1, 1):
-    body.cylinder(sx * 0.78, 1.05, Z_END + 0.02, 0.11, 0.04, 'light_head', 'z', 14)
+    body.cylinder(sx * 0.78, 1.05, Z_END + 0.05, 0.11, 0.05, 'light_head', 'z', 14)
     body.box(sx * 1.0, 1.85, Z_END + 0.03, 0.14, 0.1, 0.04, 'light_amber')
 
 # rear face: cream cap, green lower panel, dark engine door, rear window, lamps, bumper
