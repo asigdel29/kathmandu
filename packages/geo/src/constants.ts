@@ -8,4 +8,4 @@ export const TILE_SIZE_M = 800;
 /** Heightmap vertices per tile side (65 -> 12.5 m spacing). */
 export const HEIGHTMAP_N = 65;
 /** Bump when any artifact format or generator changes; part of inputsHash. */
-export const PIPELINE_VERSION = 2;
+export const PIPELINE_VERSION = 3;
