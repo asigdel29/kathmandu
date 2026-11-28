@@ -208,7 +208,10 @@ async function main(): Promise<void> {
   const enter = (v: Vehicle) => {
     driving = v; v.occupied = true;
     player.setActive(false);
-    player.setDriving(v.group, seatOffset(v.type));
+    // A motorbike seats the character on its `rider` node so the figure banks with the bike; its stand-in rider is hidden.
+    v.ownRider = false;
+    // Without the GLB (box fallback) there is no rider node: seat the figure in the bike's group as before.
+    player.setDriving(v.riderAnchor ?? v.group, v.riderAnchor || v.type !== 'motorbike' ? seatOffset(v.type) : new THREE.Vector3(0, -0.35, 0));
     follow.setMode('drive');
   };
   const exit = (v: Vehicle) => {

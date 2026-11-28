@@ -23,9 +23,13 @@ const FEET_BELOW_CENTRE_M = 0.9;
  * which is -X in this frame.
  */
 const SEAT_OFFSETS: Record<VehicleType, THREE.Vector3> = {
-  tempo: new THREE.Vector3(-0.3, -0.75, 0.3),
-  taxi: new THREE.Vector3(-0.3, -0.55, 0.2),
-  motorbike: new THREE.Vector3(0, -0.35, 0),
+  tempo: new THREE.Vector3(-0.25, -0.8, -0.05),
+  taxi: new THREE.Vector3(-0.3, -0.9, -0.15),
+  // Relative to the model's `rider` node, which the motorbike passes as the seat parent (see main.ts).
+  motorbike: new THREE.Vector3(0, -0.55, 0.15),
+  micro: new THREE.Vector3(-0.4, -0.79, 0.9),
+  bus: new THREE.Vector3(-0.6, -0.925, 4.3),
+  truck: new THREE.Vector3(-0.45, -0.825, 3.0),
 };
 
 /** A copy of the driver's seat offset for a vehicle type. */

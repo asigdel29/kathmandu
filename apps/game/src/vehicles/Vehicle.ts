@@ -68,6 +68,8 @@ export class Vehicle {
   /** Where a rider sits (motorbike model), a child of the lean pivot so it banks with the bike; undefined for the box fallback and other types. */
   riderAnchor?: THREE.Object3D;
   private riderMesh?: THREE.Mesh;
+  /** Show the built-in helmeted rider while occupied; false when the player's own character sits on the bike instead. */
+  ownRider = true;
 
   constructor(private scene: THREE.Scene, private physics: Physics, readonly type: VehicleType, readonly tuning: VehicleTuning, pos: THREE.Vector3, yaw: number, private skins?: VehicleSkins) {
     const t = tuning;
@@ -262,7 +264,7 @@ export class Vehicle {
     const p = this.body.translation(); const r = this.body.rotation();
     this.group.position.set(p.x, p.y, p.z);
     this.group.quaternion.set(r.x, r.y, r.z, r.w);
-    if (this.riderMesh) this.riderMesh.visible = this.occupied;
+    if (this.riderMesh) this.riderMesh.visible = this.occupied && this.ownRider;
     for (const w of this.visuals) {
       const susp = this.ctl.wheelSuspensionLength(w.ray) ?? this.tuning.suspensionRestLength;
       w.pivot.position.y = this.connY - susp;
